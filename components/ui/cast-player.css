@@ -1,0 +1,89 @@
+.cast-player-shell {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  border: 1px solid #dbe3ec;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+}
+
+.cast-player-chrome {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  border-bottom: 1px solid #e6eef5;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 0 14px;
+}
+
+.cast-player-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.cast-player-dot {
+  display: block;
+  height: 10px;
+  width: 10px;
+  border-radius: 9999px;
+}
+
+.cast-player-title {
+  margin-left: 14px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.cast-player-root,
+.cast-player-root > .ap-wrapper,
+.cast-player-root > .ap-wrapper > .ap-player {
+  width: 100%;
+}
+
+.cast-player-root > .ap-wrapper {
+  justify-content: stretch;
+}
+
+.cast-player-root > .ap-wrapper > .ap-player {
+  max-width: none;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.cast-player-root .ap-term {
+  border-width: 8px 4px;
+  border-color: #ffffff;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.cast-player-root .ap-control-bar,
+.cast-player-root .ap-overlay {
+  display: none !important;
+}
+
+.cast-player-root .ap-line span {
+  font-variant-ligatures: none;
+}
+
+.asciinema-player-theme-perry-light {
+  --term-color-foreground: #0f172a;
+  --term-color-background: #ffffff;
+  --term-color-0: #0f172a;
+  --term-color-1: #b91c1c;
+  --term-color-2: #047857;
+  --term-color-3: #b45309;
+  --term-color-4: #1d4ed8;
+  --term-color-5: #6d28d9;
+  --term-color-6: #0f766e;
+  --term-color-7: #e2e8f0;
+  --term-color-8: #475569;
+  --term-color-9: #dc2626;
+  --term-color-10: #059669;
+  --term-color-11: #d97706;
+  --term-color-12: #2563eb;
+  --term-color-13: #7c3aed;
+  --term-color-14: #0891b2;
+  --term-color-15: #f8fafc;
+}
