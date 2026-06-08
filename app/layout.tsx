@@ -1,16 +1,31 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import "asciinema-player/dist/bundle/asciinema-player.css";
+import "../components/ui/cast-player.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const minecraftia = localFont({
+  src: "./fonts/Minecraftia-Regular.ttf",
+  variable: "--font-minecraftia",
+  display: "swap",
+  fallback: ["monospace"],
+});
+
+const mondwest = localFont({
+  src: "./fonts/Mondwest-Regular.otf",
+  variable: "--font-mondwest",
+  display: "swap",
+  fallback: ["monospace"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// Change this to "mondwest" to switch the site's primary display font.
+const ACTIVE_SITE_FONT: "minecraftia" | "mondwest" = "minecraftia";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,7 +40,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-site-font={ACTIVE_SITE_FONT}
+      className={`${minecraftia.variable} ${mondwest.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

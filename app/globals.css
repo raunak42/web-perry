@@ -3,24 +3,44 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-site-active: var(--font-minecraftia);
+}
+
+html[data-site-font="minecraftia"] {
+  --font-site-active: var(--font-minecraftia);
+}
+
+html[data-site-font="mondwest"] {
+  --font-site-active: var(--font-mondwest);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-site-active);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: #ffffff;
+  color: var(--foreground);
+  font-family: var(--font-site-active), monospace;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:where(
+  a[href],
+  button,
+  summary,
+  label[for],
+  select,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"]
+) {
+  cursor: pointer;
+}
+
+:where(button:disabled, input:disabled, select:disabled) {
+  cursor: default;
 }
