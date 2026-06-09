@@ -82,9 +82,9 @@ export default function CommandDisplay({ command }: { command: string }) {
   };
 
   return (
-    <div className="mx-auto mt-[120px] w-full max-w-[36rem] overflow-hidden rounded-none border border-[#dbe3ec] bg-white/96 text-left text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl">
-      <div className="flex flex-nowrap overflow-x-auto border-b border-[#dbe3ec] bg-[#fcfdff]/90">
-        {tabs.map((tab) => {
+    <div className="mx-auto mt-[72px] w-full max-w-[34rem] overflow-hidden rounded-none border border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(246,250,255,0.72)_100%)] text-left text-[#0f172a] shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-xl">
+      <div className="flex flex-nowrap overflow-x-auto border-b border-white/55 bg-white/26">
+        {tabs.map((tab, index) => {
           const isActive = tab.id === selectedTab.id;
 
           return (
@@ -96,11 +96,12 @@ export default function CommandDisplay({ command }: { command: string }) {
                 setCopied(false);
               }}
               className={[
-                "min-w-0 flex-1 whitespace-nowrap border-r border-[#dbe3ec] px-3 py-3 text-left text-[12px] uppercase transition",
+                "min-w-0 flex-1 whitespace-nowrap px-3 py-2 text-left text-[11px] uppercase transition",
                 "font-medium tracking-[0.18em]",
+                index !== tabs.length - 1 ? "border-r border-white/55" : "",
                 isActive
-                  ? "bg-white text-[#0f172a] shadow-[inset_0_-2px_0_0_#93c5fd]"
-                  : "text-[#94a3b8] hover:bg-[#f8fbff] hover:text-[#64748b]",
+                  ? "bg-white/72 text-[#0f172a] shadow-[inset_0_-2px_0_0_#9dc4ea]"
+                  : "text-[#7b8ba5] hover:bg-white/52 hover:text-[#334155]",
               ].join(" ")}
             >
               {tab.label}
@@ -109,10 +110,10 @@ export default function CommandDisplay({ command }: { command: string }) {
         })}
       </div>
 
-      <div className="flex items-center gap-4 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="flex items-center gap-3 bg-white/14 px-4 py-3 sm:px-4 sm:py-3">
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-2.5">
-            <span className="shrink-0 font-mono text-[16px] leading-none text-[#94a3b8]">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/58 font-mono text-[15px] leading-none text-[#8ba0c1]">
               $
             </span>
             <code className="block min-w-0 overflow-x-auto whitespace-nowrap font-mono text-[16px] leading-[1.35] text-[#0f172a] sm:text-[18px]">
@@ -125,7 +126,7 @@ export default function CommandDisplay({ command }: { command: string }) {
           type="button"
           onClick={handleCopy}
           aria-label={copied ? "Copied" : "Copy command"}
-          className="flex h-11 w-11 shrink-0 items-center justify-center border border-[#dbe3ec] bg-[#fbfdff] text-[#7aa8d4] transition hover:bg-white hover:text-[#5d94ca]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/64 text-[#7aa8d4] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-white hover:text-[#5d94ca]"
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
         </button>

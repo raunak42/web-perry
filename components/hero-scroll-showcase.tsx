@@ -12,6 +12,7 @@ import CommandDisplay from "@/components/ui/command-display";
 import CastPlayer from "@/components/ui/cast-player";
 import HeroLensingShader from "@/components/ui/hero-lensing-shader";
 import PixelRevealImage from "@/components/ui/pixel-reveal-image";
+import Text3DFlip from "@/components/ui/text-3d-flip";
 
 const INITIAL_TERMINAL_PEEK = 46;
 const TERMINAL_MIN_TOP = 48;
@@ -497,13 +498,15 @@ function PerryClosingSection() {
       aria-label="Perry closing reveal"
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden" data-nav-surface="hero">
-        <Image
-          src="/perry-outro-window.png"
-          alt="Retro computer on a desk overlooking a bright coastal town through an open window"
-          fill
-          sizes="100vw"
-          className="object-cover object-center"
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <HeroLensingShader
+            src="/perry-outro-window.png"
+            imageWidth={1672}
+            imageHeight={941}
+            lensScale={1.5}
+            className="h-full w-full"
+          />
+        </div>
       </div>
 
       <div className="absolute inset-x-0 top-0 z-10 bg-white" data-nav-surface="light">
@@ -525,9 +528,18 @@ function PerryClosingSection() {
               />
             </div>
 
-            <h2 className="mt-8 max-w-[30ch] text-[2.3rem] leading-[1.42] tracking-[-0.02em] text-[#09111f] sm:text-[2.6rem]">
+            <Text3DFlip
+              as="div"
+              className="mx-auto mt-8 max-w-[30ch] justify-center text-[2.3rem] leading-[1.42] tracking-[-0.02em] text-[#09111f] sm:text-[2.6rem]"
+              textClassName="bg-white text-[#09111f]"
+              flipTextClassName="bg-white text-[#09111f]"
+              rotateDirection="top"
+              staggerDuration={0.03}
+              staggerFrom="first"
+              transition={{ type: "spring", damping: 25, stiffness: 160 }}
+            >
               We&apos;re building a terminal agent for people who&apos;d rather stay in the shell.
-            </h2>
+            </Text3DFlip>
 
             <p className="mt-8 text-[15px] leading-7 text-[#475569] sm:text-base">
               If that sounds like your workflow,{" "}
@@ -894,7 +906,7 @@ export default function HeroScrollShowcase() {
           <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.88)_100%)]" />
           <HeroNavbar />
 
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
+          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-32 text-center">
             <h1 className="text-[42px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
               The Terminal Agent <br /> Built for Simplicity
             </h1>
