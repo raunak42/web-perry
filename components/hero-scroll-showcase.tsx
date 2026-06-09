@@ -906,7 +906,7 @@ export default function HeroScrollShowcase() {
           <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.88)_100%)]" />
           <HeroNavbar />
 
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-32 text-center">
+          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
             <h1 className="text-[42px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
               The Terminal Agent <br /> Built for Simplicity
             </h1>
