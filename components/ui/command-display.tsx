@@ -9,7 +9,19 @@ type CommandTab = {
 };
 
 function deriveTabs(command: string): CommandTab[] {
-  const match = command.trim().match(/^npm\s+(?:i|install)\s+(.+)$/i);
+  const normalizedCommand = command.trim();
+
+  if (normalizedCommand.includes("@perry-ai/cli")) {
+    return [
+      { id: "npm", label: "NPM", command: "npm install -g @perry-ai/cli" },
+      { id: "pnpm", label: "PNPM", command: "pnpm add -g @perry-ai/cli" },
+      { id: "yarn", label: "YARN", command: "yarn dlx -p @perry-ai/cli perry" },
+      { id: "bun", label: "BUN", command: "bunx --package @perry-ai/cli perry" },
+      { id: "npx", label: "NPX", command: "npx @perry-ai/cli" },
+    ];
+  }
+
+  const match = normalizedCommand.match(/^npm\s+(?:i|install)\s+(.+)$/i);
   if (!match) {
     return [{ id: "default", label: "Command", command }];
   }

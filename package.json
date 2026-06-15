@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "compress-casts": "node scripts/compress-casts.mjs"
   },
   "dependencies": {
     "asciinema-player": "^3.15.1",

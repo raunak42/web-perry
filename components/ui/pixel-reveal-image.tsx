@@ -17,7 +17,7 @@ type PixelRevealImageProps = {
 type TileDefinition = {
   id: number;
   startsVisible: boolean;
-  imageStyle: CSSProperties;
+  transitionStyle: CSSProperties;
 };
 
 function hashString(value: string) {
@@ -42,7 +42,7 @@ function mulberry32(seed: number) {
   };
 }
 
-const FINAL_TILE_SCALE = 0.97;
+const COVER_TILE_COLOR = "#ffffff";
 
 export default function PixelRevealImage({
   src,
@@ -56,6 +56,7 @@ export default function PixelRevealImage({
 }: PixelRevealImageProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [hasFinished, setHasFinished] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const gridStyle = useMemo<CSSProperties>(
@@ -68,34 +69,34 @@ export default function PixelRevealImage({
 
   const tiles = useMemo<TileDefinition[]>(() => {
     const random = mulberry32(hashString(`${src}:${columns}:${rows}`));
-    const backgroundSize = `${columns * 100}% ${rows * 100}%`;
     const clampedInitialVisibleFraction = Math.min(
       Math.max(initialVisibleFraction, 0),
       1,
     );
 
     return Array.from({ length: columns * rows }, (_, index) => {
-      const column = index % columns;
-      const row = Math.floor(index / columns);
-      const xPercent = columns === 1 ? 0 : (column / (columns - 1)) * 100;
-      const yPercent = rows === 1 ? 0 : (row / (rows - 1)) * 100;
       const delayMs = Math.round(random() * maxDelayMs);
       const startsVisible = random() < clampedInitialVisibleFraction;
 
       return {
         id: index,
         startsVisible,
-        imageStyle: {
-          backgroundImage: `url(${src})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize,
-          backgroundPosition: `${xPercent}% ${yPercent}%`,
+        transitionStyle: {
           transitionDelay: `${delayMs}ms`,
           transitionDuration: `${tileDurationMs}ms`,
         },
       };
     });
   }, [columns, initialVisibleFraction, maxDelayMs, rows, src, tileDurationMs]);
+
+  const gridOverlayStyle = useMemo<CSSProperties>(
+    () => ({
+      backgroundImage:
+        "linear-gradient(to right, rgba(255,255,255,0.36) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.36) 1px, transparent 1px)",
+      backgroundSize: `${100 / columns}% ${100 / rows}%`,
+    }),
+    [columns, rows],
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -130,22 +131,21 @@ export default function PixelRevealImage({
     return () => observer.disconnect();
   }, [prefersReducedMotion]);
 
+  useEffect(() => {
+    if (!hasStarted || prefersReducedMotion) return;
+
+    const timeout = window.setTimeout(() => {
+      setHasFinished(true);
+    }, maxDelayMs + tileDurationMs + 160);
+
+    return () => window.clearTimeout(timeout);
+  }, [hasStarted, maxDelayMs, prefersReducedMotion, tileDurationMs]);
+
   return (
-    <div
-      ref={wrapperRef}
-      className="relative aspect-square w-full"
-      role="img"
-      aria-label={alt}
-    >
-      {prefersReducedMotion ? (
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          sizes={sizes}
-          className="object-cover"
-        />
-      ) : (
+    <div ref={wrapperRef} className="relative aspect-square w-full overflow-hidden">
+      <Image src={src} alt={alt} fill sizes={sizes} className="object-cover" />
+
+      {!prefersReducedMotion && !hasFinished ? (
         <div aria-hidden="true" className="absolute inset-0 grid" style={gridStyle}>
           {tiles.map((tile) => {
             const isVisible = hasStarted || tile.startsVisible;
@@ -153,20 +153,27 @@ export default function PixelRevealImage({
             return (
               <span key={tile.id} className="relative overflow-hidden">
                 <span
-                  className="absolute inset-0 bg-no-repeat transition-[opacity,transform] ease-out"
+                  className="absolute inset-0 transition-[opacity,transform] ease-out"
                   style={{
-                    ...tile.imageStyle,
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible
-                      ? `scale(${FINAL_TILE_SCALE})`
-                      : "scale(0.72)",
+                    ...tile.transitionStyle,
+                    backgroundColor: COVER_TILE_COLOR,
+                    opacity: isVisible ? 0 : 1,
+                    transform: isVisible ? "scale(0.72)" : "scale(1)",
                   }}
                 />
               </span>
             );
           })}
         </div>
-      )}
+      ) : null}
+
+      {!prefersReducedMotion ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={gridOverlayStyle}
+        />
+      ) : null}
     </div>
   );
 }

@@ -13,8 +13,8 @@ import CastPlayer from "@/components/ui/cast-player";
 import HeroLensingShader from "@/components/ui/hero-lensing-shader";
 import PixelRevealImage from "@/components/ui/pixel-reveal-image";
 import Text3DFlip from "@/components/ui/text-3d-flip";
-import { TextAnimate } from "@/components/ui/text-animate";
 
+const DEFAULT_CAST_SOURCE = "/what_is_perry.cast";
 const INITIAL_TERMINAL_PEEK = 46;
 const TERMINAL_MIN_TOP = 48;
 const TERMINAL_CENTER_DROP = 48;
@@ -28,19 +28,27 @@ function TerminalStack({
   withCommand = true,
   title,
   description,
+  src = DEFAULT_CAST_SOURCE,
+  preloadSources,
+  sourceStartTimes,
 }: {
   withCommand?: boolean;
   title?: string;
   description?: string[];
+  src?: string;
+  preloadSources?: string[];
+  sourceStartTimes?: Record<string, number>;
 }) {
   return (
     <div className="w-[min(100vw-3rem,42rem)] lg:w-[42rem]">
-      {withCommand ? <CommandDisplay command="npm i perry" /> : null}
+      {withCommand ? <CommandDisplay command="npm install -g @perry-ai/cli" /> : null}
 
       <CastPlayer
-        src="/perry-session.cast"
+        src={src}
         title={title}
         description={description}
+        preloadSources={preloadSources}
+        sourceStartTimes={sourceStartTimes}
         className={withCommand ? "mt-6" : undefined}
       />
     </div>
@@ -53,6 +61,25 @@ const navItems = [
   { href: "#automation", label: "Automation" },
   { href: "#shell", label: "Shell" },
 ];
+
+const sectionCastSources: Partial<Record<string, string>> = {
+  tools: "/perry_tool_use.cast",
+  plan: "/perry_plan_mode.cast",
+  subagents: "/perry_sub_agents.cast",
+  permissions: "/perry_permissions.cast",
+  compaction: "/perry_compaction.cast",
+  resume: "/perry_resume.cast",
+};
+
+const featureCastStartTimes: Record<string, number> = {
+  [DEFAULT_CAST_SOURCE]: 0,
+  "/perry_tool_use.cast": 19,
+  "/perry_plan_mode.cast": 1.5,
+  "/perry_sub_agents.cast": 16.5,
+  "/perry_permissions.cast": 20.6,
+  "/perry_compaction.cast": 4.5,
+  "/perry_resume.cast": 1.3,
+};
 
 const sections = [
   {
@@ -139,26 +166,6 @@ const sections = [
       "return only the useful result",
     ],
     terminalFooter: "Extra help without losing the main thread.",
-  },
-  {
-    id: "mcp",
-    eyebrow: "MCP",
-    title: "Connect Perry to more tools.",
-    body: "MCP lets Perry use extra tools from local servers. Add a config file, reload MCP, and those tools become available inside the same Perry session.",
-    points: [
-      "Load tools from MCP servers",
-      "Use them from the same prompt",
-      "Keep permissions in one place",
-    ],
-    terminalTitle: "perry: connect mcp",
-    terminalLead: "When Perry needs another tool, MCP can add it.",
-    terminalSummary: "MCP tools show up inside the normal agent loop.",
-    terminalPoints: [
-      "check connected servers",
-      "list available tools",
-      "call tools with permission checks",
-    ],
-    terminalFooter: "More tools, same Perry workflow.",
   },
   {
     id: "permissions",
@@ -298,6 +305,7 @@ function StoryCard({
   isActive,
   isLast = false,
   titleRef,
+  bodyRef,
 }: {
   id: string;
   eyebrow: string;
@@ -307,6 +315,7 @@ function StoryCard({
   isActive: boolean;
   isLast?: boolean;
   titleRef?: (node: HTMLHeadingElement | null) => void;
+  bodyRef?: (node: HTMLParagraphElement | null) => void;
 }) {
   return (
     <section
@@ -333,7 +342,10 @@ function StoryCard({
         >
           {title}
         </h2>
-        <p className="mt-6 max-w-xl text-[16px] leading-8 text-[#475569] [word-spacing:0.08em]">
+        <p
+          ref={bodyRef}
+          className="mt-6 max-w-xl text-[16px] leading-8 text-[#475569] [word-spacing:0.08em]"
+        >
           {body}
         </p>
 
@@ -362,7 +374,7 @@ function HowPerryWorksSection() {
         <div className="flex justify-center">
           <div className="relative w-full max-w-[28rem] overflow-hidden xl:max-w-[30rem]">
             <PixelRevealImage
-              src="/perry-how-it-works.png"
+              src="/perry-how-it-works.webp"
               alt="Pixel-art platypus standing among sunflowers under a bright blue sky"
               columns={40}
               rows={40}
@@ -383,15 +395,9 @@ function HowPerryWorksSection() {
               Start with a request. Perry reads the repo, makes precise changes,
               and runs the right commands in the same terminal loop.
             </p>
-            <TextAnimate
-              as="h2"
-              animation="blurInUp"
-              by="word"
-              once
-              className="mt-10 max-w-[17ch] text-[2.15rem] leading-[1.32] tracking-[-0.002em] text-[#09111f] xl:text-[2.45rem]"
-            >
+            <h2 className="mt-10 max-w-[17ch] text-[2.15rem] leading-[1.32] tracking-[-0.002em] text-[#09111f] xl:text-[2.45rem]">
               From prompt to patch, Perry stays close to the work.
-            </TextAnimate>
+            </h2>
           </div>
         </div>
       </div>
@@ -482,7 +488,7 @@ function PerryAutomationSection() {
       <div className="relative min-h-[52rem] overflow-hidden rounded-[30px] border border-[#dbe3ec] text-white shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:min-h-[56rem] lg:min-h-0 lg:aspect-[16/9]">
         <div className="absolute inset-0 overflow-hidden">
           <HeroLensingShader
-            src="/perry-meadow-terminal.png"
+            src="/perry-meadow-terminal.webp"
             imageWidth={1672}
             imageHeight={941}
             lensScale={1.5}
@@ -583,7 +589,7 @@ function PerryClosingSection() {
       >
         <div className="absolute inset-0 overflow-hidden">
           <HeroLensingShader
-            src="/perry-outro-window.png"
+            src="/perry-outro-window.webp"
             imageWidth={1672}
             imageHeight={941}
             lensScale={1.5}
@@ -606,7 +612,7 @@ function PerryClosingSection() {
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <div className="flex h-12 w-12 items-center justify-center text-[#0f172a]">
               <Image
-                src="/perry-closing-icon.png"
+                src="/perry-closing-icon.webp"
                 alt="Perry icon"
                 width={42}
                 height={42}
@@ -709,7 +715,7 @@ function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
   return (
     <div className="bg-white lg:hidden">
       <div className="p-[18px]">
-        <section className="relative flex w-full items-start justify-center overflow-x-hidden rounded-[24px]">
+        <section className="relative flex w-full items-start justify-center overflow-hidden rounded-[24px]">
           <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_40%,rgba(255,255,255,0.82)_100%)]" />
 
           <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
@@ -727,7 +733,8 @@ function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
           </div>
 
           <HeroLensingShader
-            src="/her-new.png"
+            src="/her-new.webp"
+            placeholderSrc="/her-new-blur.webp"
             imageWidth={1672}
             imageHeight={941}
             className="w-[150%]"
@@ -773,7 +780,7 @@ function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
         <div className="mx-auto max-w-2xl">
           <div className="mx-auto max-w-[24rem] overflow-hidden">
             <PixelRevealImage
-              src="/perry-how-it-works.png"
+              src="/perry-how-it-works.webp"
               alt="Pixel-art platypus standing among sunflowers under a bright blue sky"
               columns={36}
               rows={36}
@@ -814,6 +821,9 @@ export default function HeroScrollShowcase() {
   const sectionTitleRefs = useRef<Record<string, HTMLHeadingElement | null>>(
     {},
   );
+  const sectionBodyRefs = useRef<Record<string, HTMLParagraphElement | null>>(
+    {},
+  );
 
   const motionStateRef = useRef({
     stickyTop: 0,
@@ -826,7 +836,6 @@ export default function HeroScrollShowcase() {
   const frameRef = useRef<number | null>(null);
 
   const [desktop, setDesktop] = useState(false);
-  const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? "");
   const [activeStorySectionId, setActiveStorySectionId] = useState(
     sections[0]?.id ?? "",
   );
@@ -842,47 +851,30 @@ export default function HeroScrollShowcase() {
   useEffect(() => {
     const updateActiveSection = () => {
       if (desktop) {
-        const terminalTop =
-          terminalMotionRef.current?.getBoundingClientRect().top ??
-          window.innerHeight * 0.18;
-
-        const enteredSection = sections
-          .filter((section) => {
-            const element = document.getElementById(section.id);
-            if (!element) return false;
-
-            const rect = element.getBoundingClientRect();
-            return rect.top <= window.innerHeight - 24 && rect.bottom >= 24;
-          })
-          .at(-1);
-
-        if (enteredSection) {
-          setActiveStorySectionId((current) =>
-            current === enteredSection.id ? current : enteredSection.id,
-          );
-        }
-
-        const crossedSection = sections
+        const fullyEnteredSection = sections
           .filter((section) => {
             const title = sectionTitleRefs.current[section.id];
-            return title
-              ? title.getBoundingClientRect().top <= terminalTop + 12
-              : false;
+            const body = sectionBodyRefs.current[section.id];
+            if (!title || !body) return false;
+
+            const titleRect = title.getBoundingClientRect();
+            const bodyRect = body.getBoundingClientRect();
+
+            return titleRect.top >= 0 && bodyRect.bottom <= window.innerHeight;
           })
           .at(-1);
 
-        const nextSection = crossedSection ?? sections[0];
-
-        if (nextSection) {
-          setActiveSectionId((current) =>
-            current === nextSection.id ? current : nextSection.id,
-          );
-
+        if (fullyEnteredSection) {
           const nextTitle =
-            window.scrollY <= 8
+            window.scrollY <= 8 && fullyEnteredSection.id === sections[0]?.id
               ? "scroll to continue"
-              : nextSection.terminalTitle;
+              : fullyEnteredSection.terminalTitle;
 
+          setActiveStorySectionId((current) =>
+            current === fullyEnteredSection.id
+              ? current
+              : fullyEnteredSection.id,
+          );
           setTerminalTitle((current) =>
             current === nextTitle ? current : nextTitle,
           );
@@ -912,12 +904,21 @@ export default function HeroScrollShowcase() {
         .sort((left, right) => left.distance - right.distance)[0];
 
       if (closestSection) {
-        setActiveSectionId((current) =>
-          current === closestSection.id ? current : closestSection.id,
-        );
+        const nextSection =
+          sections.find((section) => section.id === closestSection.id) ??
+          sections[0];
+
         setActiveStorySectionId((current) =>
           current === closestSection.id ? current : closestSection.id,
         );
+
+        if (nextSection) {
+          setTerminalTitle((current) =>
+            current === nextSection.terminalTitle
+              ? current
+              : nextSection.terminalTitle,
+          );
+        }
       }
     };
 
@@ -1050,7 +1051,8 @@ export default function HeroScrollShowcase() {
   }
 
   const activeTerminalSection =
-    sections.find((section) => section.id === activeSectionId) ?? sections[0];
+    sections.find((section) => section.id === activeStorySectionId) ??
+    sections[0];
   const terminalDescription =
     terminalTitle === "scroll to continue"
       ? [
@@ -1061,6 +1063,19 @@ export default function HeroScrollShowcase() {
           activeTerminalSection?.terminalLead ?? "",
           activeTerminalSection?.terminalFooter ?? "",
         ];
+  const terminalCastSrc =
+    sectionCastSources[activeStorySectionId] ?? DEFAULT_CAST_SOURCE;
+  const activeStoryIndex = sections.findIndex(
+    (section) => section.id === activeStorySectionId,
+  );
+  const mountedCastSources = Array.from(
+    new Set(
+      [0, 1]
+        .map((offset) => sections[activeStoryIndex + offset])
+        .filter((section): section is (typeof sections)[number] => Boolean(section))
+        .map((section) => sectionCastSources[section.id] ?? DEFAULT_CAST_SOURCE),
+    ),
+  );
 
   return (
     <div className="hidden bg-white lg:block" data-nav-surface="light">
@@ -1068,7 +1083,7 @@ export default function HeroScrollShowcase() {
         <section
           id="top"
           data-nav-surface="hero"
-          className="relative flex w-full items-start justify-center overflow-x-hidden rounded-[24px]"
+          className="relative flex w-full items-start justify-center overflow-hidden rounded-[24px]"
         >
           <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.88)_100%)]" />
           <HeroNavbar />
@@ -1087,12 +1102,13 @@ export default function HeroScrollShowcase() {
               data-nav-surface="light"
               className="w-[42rem] max-w-[calc(100vw-3rem)]"
             >
-              <CommandDisplay command="npm i perry" />
+              <CommandDisplay command="npm install -g @perry-ai/cli" />
             </div>
           </div>
 
           <HeroLensingShader
-            src="/her-new.png"
+            src="/her-new.webp"
+            placeholderSrc="/her-new-blur.webp"
             imageWidth={1672}
             imageHeight={941}
             className="w-[150%]"
@@ -1119,12 +1135,15 @@ export default function HeroScrollShowcase() {
                   withCommand={false}
                   title={terminalTitle}
                   description={terminalDescription}
+                  src={terminalCastSrc}
+                  preloadSources={mountedCastSources}
+                  sourceStartTimes={featureCastStartTimes}
                 />
               </div>
             </div>
           </div>
 
-          <div ref={storySectionsRef} className="space-y-28 text-left">
+          <div ref={storySectionsRef} className="space-y-0 text-left">
             {sections.map((section, index) => (
               <StoryCard
                 key={section.id}
@@ -1133,6 +1152,9 @@ export default function HeroScrollShowcase() {
                 isLast={index === sections.length - 1}
                 titleRef={(node) => {
                   sectionTitleRefs.current[section.id] = node;
+                }}
+                bodyRef={(node) => {
+                  sectionBodyRefs.current[section.id] = node;
                 }}
               />
             ))}

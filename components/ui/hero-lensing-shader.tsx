@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type HeroLensingShaderProps = {
   src: string;
+  placeholderSrc?: string;
   imageWidth: number;
   imageHeight: number;
   lensScale?: number;
@@ -64,6 +65,7 @@ function createProgram(
 
 export default function HeroLensingShader({
   src,
+  placeholderSrc,
   imageWidth,
   imageHeight,
   lensScale = 1,
@@ -71,11 +73,14 @@ export default function HeroLensingShader({
 }: HeroLensingShaderProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isImageReady, setIsImageReady] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
+
+    setIsImageReady(false);
 
     const gl = canvas.getContext("webgl", {
       antialias: true,
@@ -213,6 +218,7 @@ export default function HeroLensingShader({
 
     let frame = 0;
     let isReady = false;
+    let isDisposed = false;
     let animationFrame = 0;
 
     const resize = () => {
@@ -295,6 +301,8 @@ export default function HeroLensingShader({
     resizeObserver.observe(container);
 
     image.onload = () => {
+      if (isDisposed) return;
+
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -306,6 +314,7 @@ export default function HeroLensingShader({
       );
       resize();
       isReady = true;
+      setIsImageReady(true);
     };
 
     window.addEventListener("mousemove", handleMove);
@@ -314,6 +323,7 @@ export default function HeroLensingShader({
     animationFrame = window.requestAnimationFrame(draw);
 
     return () => {
+      isDisposed = true;
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseleave", handleLeave);
       resizeObserver.disconnect();
@@ -330,13 +340,28 @@ export default function HeroLensingShader({
       className={cn("relative shrink-0 max-w-none", className)}
       style={{
         aspectRatio: `${imageWidth} / ${imageHeight}`,
-        backgroundImage: `url(${src})`,
+        backgroundColor: "#f7fbff",
+        backgroundImage: placeholderSrc ? undefined : `url(${src})`,
         backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
       }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      {placeholderSrc ? (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 scale-[1.04] bg-cover bg-top bg-no-repeat blur-2xl transition-opacity duration-500"
+          style={{
+            backgroundImage: `url(${placeholderSrc})`,
+            opacity: isImageReady ? 0 : 1,
+          }}
+        />
+      ) : null}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full transition-opacity duration-500"
+        style={{ opacity: isImageReady || !placeholderSrc ? 1 : 0 }}
+      />
     </div>
   );
 }
