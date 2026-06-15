@@ -1,18 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import CommandDisplay from "@/components/ui/command-display";
 import CastPlayer from "@/components/ui/cast-player";
 import HeroLensingShader from "@/components/ui/hero-lensing-shader";
 import PixelRevealImage from "@/components/ui/pixel-reveal-image";
 import Text3DFlip from "@/components/ui/text-3d-flip";
+import { TextAnimate } from "@/components/ui/text-animate";
 
 const INITIAL_TERMINAL_PEEK = 46;
 const TERMINAL_MIN_TOP = 48;
@@ -23,13 +18,23 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function TerminalStack({ withCommand = true }: { withCommand?: boolean }) {
+function TerminalStack({
+  withCommand = true,
+  title,
+  description,
+}: {
+  withCommand?: boolean;
+  title?: string;
+  description?: string[];
+}) {
   return (
     <div className="w-[min(100vw-3rem,42rem)] lg:w-[42rem]">
       {withCommand ? <CommandDisplay command="npm i perry" /> : null}
 
       <CastPlayer
         src="/perry-session.cast"
+        title={title}
+        description={description}
         className={withCommand ? "mt-6" : undefined}
       />
     </div>
@@ -38,128 +43,188 @@ function TerminalStack({ withCommand = true }: { withCommand?: boolean }) {
 
 const navItems = [
   { href: "#why", label: "Why" },
-  { href: "#models", label: "Models" },
+  { href: "#tools", label: "Tools" },
+  { href: "#plan", label: "Plan" },
   { href: "#mcp", label: "MCP" },
-  { href: "#subagents", label: "Subagents" },
   { href: "#resume", label: "Resume" },
 ];
 
 const sections = [
   {
-    id: "why",
-    eyebrow: "Why Perry?",
-    title: "A terminal agent that stays out of the way until you need it.",
-    body: "Perry is a minimal coding agent for people who already live in the terminal. It keeps normal scrollback, keeps output copyable and selectable, and keeps the prompt available while work is still running so you can guide the session without fighting the interface.",
+    id: "intro",
+    eyebrow: "What is Perry?",
+    title: "Meet Perry, an agent harness for the terminal.",
+    body: "Perry is an AI agent harness for coding work: the shell-native layer around a model that gives it tools, repo context, permissions, and session memory. It is built for people who want agentic help without leaving the terminal or giving up control of the workflow.",
     points: [
-      "Normal terminal flow and scrollback, not an alternate-screen app",
-      "A persistent prompt and live tool traces while the agent works",
-      "Readable output you can copy, inspect, and keep in your shell history",
+      "Wraps models with tools and context",
+      "Runs inside your normal terminal flow",
+      "Keeps control, permissions, and sessions local",
     ],
+    terminalTitle: "perry: who are you",
+    terminalLead:
+      "Perry is the harness around the model, not just another chat box.",
+    terminalSummary:
+      "An agent harness gives the model tools, state, context, and guardrails.",
+    terminalPoints: [
+      "tool use in the same shell",
+      "repo context without switching apps",
+      "permissions and sessions you can control",
+    ],
+    terminalFooter: "A terminal-native harness for agentic coding.",
   },
   {
-    id: "control",
-    eyebrow: "Controlled autonomy",
-    title: "Choose how much Perry can do before it touches the repo.",
-    body: "Some tasks need freedom. Others need guardrails. Perry lets you move between ask, read-only, workspace-write, and full-access modes, and it treats sensitive files differently from everyday inspection. When a task needs deliberation first, plan mode lets Perry inspect, ask focused questions, and wait for approval before starting work.",
+    id: "tools",
+    eyebrow: "Tool use",
+    title: "Let Perry inspect, run, and edit.",
+    body: "Perry can read files, inspect images, run commands, search when needed, and make precise edits. It uses tools when the answer needs more than guessing.",
     points: [
-      "Permission modes: ask, read-only, workspace-write, full-access",
-      "Sensitive files like .env, keys, and tokens get extra protection",
-      "Plan mode adds an approval step before implementation begins",
+      "Read files before answering",
+      "Run commands and tests",
+      "Edit code with clear traces",
     ],
+    terminalTitle: "perry: use tools",
+    terminalLead: "Perry can use the same tools you would use in the repo.",
+    terminalSummary:
+      "A single session can inspect code, run checks, and apply changes.",
+    terminalPoints: [
+      "read the right files",
+      "run the right commands",
+      "show what changed",
+    ],
+    terminalFooter: "Less guessing. More real work.",
   },
   {
-    id: "models",
-    eyebrow: "Model control",
-    title:
-      "Switch models for the same session instead of restarting your workflow.",
-    body: "Perry lets you choose from the models available for your current provider, change reasoning level, and keep working in the same thread. If you want a faster pass, a deeper pass, or a different model entirely, use /model and continue without resetting the conversation.",
+    id: "plan",
+    eyebrow: "Plan mode",
+    title: "Plan it with Perry before changing code.",
+    body: "Use plan mode when you want Perry to think with you first. Perry can inspect the repo, ask clear multiple-choice questions, and turn your answers into a simple plan. Nothing gets edited until you approve it.",
     points: [
-      "Choose model and reasoning level from the TUI",
-      "Save provider-specific defaults for future sessions",
-      "Change the model mid-session without losing your place",
+      "Explore the repo before deciding",
+      "Answer simple planning questions",
+      "Start work only after you approve",
     ],
-  },
-  {
-    id: "context",
-    eyebrow: "Context engineering",
-    title:
-      "Load the repo's instructions, skills, and history without bloating the loop.",
-    body: "Perry automatically picks up AGENTS.md or CLAUDE.md from the directory tree, can load reusable SKILL.md workflows on demand, and supports context handling plus compaction for longer sessions. The goal is simple: give the model the right context, not just more context.",
-    points: [
-      "Project instructions auto-load from parent directories and the current repo",
-      "Skills are loaded on demand instead of stuffed into every prompt",
-      "Context handling and /compact help long sessions stay usable",
+    terminalTitle: "perry: plan it with me",
+    terminalLead: "Plan mode slows the work down before risky changes begin.",
+    terminalSummary:
+      "Perry asks, plans, and waits for your approval before editing.",
+    terminalPoints: [
+      "inspect the codebase first",
+      "choose from simple options",
+      "approve the plan before work starts",
     ],
-  },
-  {
-    id: "mcp",
-    eyebrow: "MCP support",
-    title:
-      "Bring external tools into Perry without leaving its permission model behind.",
-    body: "Perry supports stdio MCP servers, loads them from local config files, initializes them at startup, and exposes their tools directly inside the same agent loop. That means you can add new capabilities while still keeping approval flow, current working directory, and session behavior consistent.",
-    points: [
-      "Loads MCP config from ~/.perry/mcp.json, .perry/mcp.json, and .mcp.json",
-      "Exposes server tools directly to the agent once connected",
-      "Routes MCP calls through Perry's existing permission system",
-    ],
+    terminalFooter: "A safer way to start bigger changes.",
   },
   {
     id: "subagents",
-    eyebrow: "Subagents",
-    title:
-      "Delegate a task to an isolated helper without losing control of the main session.",
-    body: "Perry can spawn generic subagents for focused side tasks such as investigation, repo inspection, or implementation support. Subagents inherit the same working directory, permissions, plan-mode rules, and tool access, then return a concise report back to the main agent instead of forking your workflow into chaos.",
+    eyebrow: "Sub-agents",
+    title: "Let Perry send out helpers.",
+    body: "Turn on sub-agents when a task needs extra investigation. Perry can start a focused helper, give it a job, and bring the result back into the main session.",
     points: [
-      "Subagents run in their own model-and-tool loop",
-      "They inherit cwd, permission mode, and plan-mode restrictions",
-      "Subagent thinking level can be configured separately",
+      "Delegate side investigations",
+      "Use the same repo and permissions",
+      "Get a short report back",
     ],
+    terminalTitle: "perry: use a helper",
+    terminalLead: "Perry can hand a focused task to a sub-agent.",
+    terminalSummary:
+      "The helper works separately, then reports back to the main thread.",
+    terminalPoints: [
+      "inspect another part of the repo",
+      "research a focused question",
+      "return only the useful result",
+    ],
+    terminalFooter: "Extra help without losing the main thread.",
+  },
+  {
+    id: "mcp",
+    eyebrow: "MCP",
+    title: "Connect Perry to more tools.",
+    body: "MCP lets Perry use extra tools from local servers. Add a config file, reload MCP, and those tools become available inside the same Perry session.",
+    points: [
+      "Load tools from MCP servers",
+      "Use them from the same prompt",
+      "Keep permissions in one place",
+    ],
+    terminalTitle: "perry: connect mcp",
+    terminalLead: "When Perry needs another tool, MCP can add it.",
+    terminalSummary: "MCP tools show up inside the normal agent loop.",
+    terminalPoints: [
+      "check connected servers",
+      "list available tools",
+      "call tools with permission checks",
+    ],
+    terminalFooter: "More tools, same Perry workflow.",
+  },
+  {
+    id: "permissions",
+    eyebrow: "Permissions",
+    title: "Control what Perry is allowed to do.",
+    body: "Perry can ask before risky actions, stay read-only, write only inside the workspace, or run in full-access mode when you want speed. You choose how much trust each session gets.",
+    points: [
+      "Ask before risky actions",
+      "Protect sensitive files",
+      "Switch to full access when ready",
+    ],
+    terminalTitle: "perry: permissions",
+    terminalLead: "You decide how much access Perry gets.",
+    terminalSummary:
+      "Permission modes make the agent safer without slowing every task down.",
+    terminalPoints: [
+      "use read-only for exploration",
+      "allow one action at a time",
+      "enable full access when you mean it",
+    ],
+    terminalFooter: "Control first. Speed when you want it.",
+  },
+  {
+    id: "compaction",
+    eyebrow: "Compaction",
+    title: "Keep long sessions manageable.",
+    body: "Long sessions can get heavy. Compaction keeps the important decisions, trims repeated context, and helps Perry continue without making you restart the conversation.",
+    points: [
+      "Keep the important context",
+      "Trim repeated back-and-forth",
+      "Continue without starting over",
+    ],
+    terminalTitle: "perry: compact session",
+    terminalLead: "When the thread gets long, compact it.",
+    terminalSummary:
+      "Compaction keeps the useful parts and clears out the noise.",
+    terminalPoints: [
+      "save key decisions",
+      "remove repeated details",
+      "keep the next steps clear",
+    ],
+    terminalFooter: "A cleaner session, without losing the thread.",
   },
   {
     id: "resume",
-    eyebrow: "Local session history",
-    title: "Stop now, continue tomorrow, and keep the thread intact.",
-    body: "Perry stores local JSONL sessions per working directory so real development can survive interruptions. Continue the latest session, resume an older one, start fresh, or compact a long thread while preserving the decisions that matter.",
+    eyebrow: "Resume session",
+    title: "Come back to the work later.",
+    body: "Perry saves local sessions so you can stop and return later. Resume the current repo, pick an older session, or show all sessions when you need to find something else.",
     points: [
-      "/continue, /resume, /new, and /compact are built in",
-      "Model, reasoning, and context settings can be restored with the session",
-      "Sessions stay local by default instead of living in a hosted dashboard",
+      "Resume sessions for this repo",
+      "Show all sessions when needed",
+      "Keep past traces and decisions",
     ],
+    terminalTitle: "perry: resume work",
+    terminalLead: "Real work gets interrupted. Perry can pick it back up.",
+    terminalSummary: "Resume brings back the conversation and the tool traces.",
+    terminalPoints: [
+      "continue the latest session",
+      "open an older session",
+      "keep useful history visible",
+    ],
+    terminalFooter: "Stop now. Continue later.",
   },
 ];
 
 function HeroNavbar() {
   const navRef = useRef<HTMLElement | null>(null);
-  const [isOverLightBackground, setIsOverLightBackground] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
 
   useEffect(() => {
     const updateNavbarState = () => {
-      const nav = navRef.current;
-      const navRect = nav?.getBoundingClientRect();
-      if (!nav || !navRect) return;
-
-      const sampleXs = [0.18, 0.34, 0.5, 0.66, 0.82].map(
-        (ratio) => navRect.left + navRect.width * ratio,
-      );
-
-      const countLightHits = (sampleY: number) =>
-        sampleXs.reduce((count, sampleX) => {
-          const surface = document
-            .elementsFromPoint(sampleX, sampleY)
-            .find(
-              (element) =>
-                element instanceof HTMLElement && !nav.contains(element),
-            )
-            ?.closest<HTMLElement>("[data-nav-surface]")?.dataset.navSurface;
-
-          return count + (surface === "light" ? 1 : 0);
-        }, 0);
-
-      const navLightHits = countLightHits(navRect.top + navRect.height / 2);
-      const viewportLightHits = countLightHits(window.innerHeight * 0.42);
-
-      setIsOverLightBackground(navLightHits >= 3 || viewportLightHits >= 3);
       setScrollOffset(Math.min(window.scrollY, 18));
     };
 
@@ -169,11 +234,9 @@ function HeroNavbar() {
 
     updateNavbarState();
     window.addEventListener("scroll", onChange, { passive: true });
-    window.addEventListener("resize", onChange);
 
     return () => {
       window.removeEventListener("scroll", onChange);
-      window.removeEventListener("resize", onChange);
     };
   }, []);
 
@@ -181,22 +244,12 @@ function HeroNavbar() {
     <div className="pointer-events-none fixed inset-x-0 top-[36px] z-40 hidden justify-center lg:flex">
       <nav
         ref={navRef}
-        className={[
-          "pointer-events-auto flex items-center gap-[5px] rounded-[15px] p-[7px] text-[12px] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-2xl transition-colors",
-          isOverLightBackground
-            ? "border border-[#dbe3ec] bg-white/78 text-[#0f172a]"
-            : "border border-white/30 bg-white/12 text-white",
-        ].join(" ")}
+        className="pointer-events-auto flex items-center gap-[5px] rounded-[12px] border border-white/25 bg-white/55 p-[7px] text-[12px] text-[#0f172a] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-sm transition-transform"
         style={{ transform: `translateY(${-scrollOffset}px)` }}
       >
         <a
           href="#top"
-          className={[
-            "rounded-[12px] px-[13px] py-[7px] font-medium tracking-[-0.02em] transition",
-            isOverLightBackground
-              ? "bg-black/[0.035] text-[#0f172a] hover:bg-black/[0.05]"
-              : "bg-white/14 text-white/95 hover:bg-white/20",
-          ].join(" ")}
+          className="rounded-[12px] bg-black/[0.035] px-[13px] py-[7px] font-medium tracking-[-0.02em] text-[#0f172a] transition hover:bg-black/[0.06]"
         >
           Perry
         </a>
@@ -205,12 +258,7 @@ function HeroNavbar() {
           <a
             key={item.href}
             href={item.href}
-            className={[
-              "rounded-[12px] px-[13px] py-[7px] font-medium tracking-[-0.02em] transition",
-              isOverLightBackground
-                ? "text-[#64748b] hover:bg-black/[0.04] hover:text-[#0f172a]"
-                : "text-white/84 hover:bg-white/12 hover:text-white",
-            ].join(" ")}
+            className="rounded-[12px] px-[13px] py-[7px] font-medium tracking-[-0.02em] text-[#334155] transition hover:bg-black/[0.04] hover:text-[#0f172a]"
           >
             {item.label}
           </a>
@@ -218,12 +266,7 @@ function HeroNavbar() {
 
         <a
           href="#install"
-          className={[
-            "ml-1 rounded-[12px] px-[15px] py-[7px] font-medium tracking-[-0.02em] transition",
-            isOverLightBackground
-              ? "bg-[#0f172a] text-white hover:bg-black"
-              : "bg-[#0f172a]/90 text-white hover:bg-[#0f172a]",
-          ].join(" ")}
+          className="ml-1 rounded-[12px] bg-[#0f172a] px-[15px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
         >
           Get Perry
         </a>
@@ -239,7 +282,8 @@ function StoryCard({
   body,
   points,
   isActive,
-  eyebrowRef,
+  isLast = false,
+  titleRef,
 }: {
   id: string;
   eyebrow: string;
@@ -247,30 +291,37 @@ function StoryCard({
   body: string;
   points?: string[];
   isActive: boolean;
-  eyebrowRef?: RefObject<HTMLDivElement | null>;
+  isLast?: boolean;
+  titleRef?: (node: HTMLHeadingElement | null) => void;
 }) {
   return (
-    <section id={id} className="flex min-h-[78vh] scroll-mt-28 items-center">
+    <section
+      id={id}
+      className={[
+        "flex min-h-[78vh] scroll-mt-28",
+        isLast ? "items-end" : "items-center",
+      ].join(" ")}
+    >
       <div
         className={[
           "w-full transition-opacity duration-300",
           isActive ? "opacity-100" : "opacity-35",
         ].join(" ")}
       >
-        <div
-          ref={eyebrowRef}
-          className="mb-5 text-[12px] font-medium tracking-[0.16em] text-[#64748b] uppercase"
-        >
+        <div className="mb-5 text-[12px] font-medium tracking-[0.16em] text-[#64748b] uppercase">
           {eyebrow}
         </div>
         <h2
+          ref={titleRef}
           className={[
-            "max-w-[13ch] text-5xl text-[#09111f] leading-[1.3] tracking-[-0.05em]",
+            "max-w-[13ch] text-5xl text-[#09111f] leading-[1.3] tracking-[-0.065em] [word-spacing:0.12em]",
           ].join(" ")}
         >
           {title}
         </h2>
-        <p className="mt-6 max-w-xl text-lg leading-8 text-[#475569]">{body}</p>
+        <p className="mt-6 max-w-xl text-[16px] leading-8 text-[#475569] [word-spacing:0.08em]">
+          {body}
+        </p>
 
         {points?.length ? (
           <ul className="mt-7 space-y-3 text-[15px] leading-6 text-[#334155]">
@@ -315,9 +366,15 @@ function HowPerryWorksSection() {
               Start with a request. Perry reads the repo, makes precise changes,
               and runs the right commands in the same terminal loop.
             </p>
-            <h2 className="mt-10 max-w-[17ch] text-[2.15rem] leading-[1.32] tracking-[-0.002em] text-[#09111f] xl:text-[2.45rem]">
+            <TextAnimate
+              as="h2"
+              animation="blurInUp"
+              by="word"
+              once
+              className="mt-10 max-w-[17ch] text-[2.15rem] leading-[1.32] tracking-[-0.002em] text-[#09111f] xl:text-[2.45rem]"
+            >
               From prompt to patch, Perry stays close to the work.
-            </h2>
+            </TextAnimate>
           </div>
         </div>
       </div>
@@ -472,7 +529,11 @@ function PerryAutomationSection() {
             >
               <span>See why</span>
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/12">
-                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5">
+                <svg
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5"
+                >
                   <path
                     d="M5 10h10M11 6l4 4-4 4"
                     fill="none"
@@ -497,7 +558,10 @@ function PerryClosingSection() {
       className="relative h-[190svh] lg:h-[168svh]"
       aria-label="Perry closing reveal"
     >
-      <div className="sticky top-0 h-[100svh] overflow-hidden" data-nav-surface="hero">
+      <div
+        className="sticky top-0 h-[100svh] overflow-hidden"
+        data-nav-surface="hero"
+      >
         <div className="absolute inset-0 overflow-hidden">
           <HeroLensingShader
             src="/perry-outro-window.png"
@@ -509,7 +573,10 @@ function PerryClosingSection() {
         </div>
       </div>
 
-      <div className="absolute inset-x-0 top-0 z-10 bg-white" data-nav-surface="light">
+      <div
+        className="absolute inset-x-0 top-0 z-10 bg-white"
+        data-nav-surface="light"
+      >
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[21px]">
           <div className="absolute inset-x-0 bottom-[16px] h-[5px] bg-[#d7f5f8]" />
           <div className="absolute inset-x-0 bottom-[8px] h-[5px] bg-[#b5eaf0]" />
@@ -538,7 +605,8 @@ function PerryClosingSection() {
               staggerFrom="first"
               transition={{ type: "spring", damping: 25, stiffness: 160 }}
             >
-              We&apos;re building a terminal agent for people who&apos;d rather stay in the shell.
+              We&apos;re building a terminal agent for people who&apos;d rather
+              stay in the shell.
             </Text3DFlip>
 
             <p className="mt-8 text-[15px] leading-7 text-[#475569] sm:text-base">
@@ -549,7 +617,11 @@ function PerryClosingSection() {
               >
                 <span>try Perry</span>
                 <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#dbe3ec] text-[#09111f]">
-                  <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5">
+                  <svg
+                    viewBox="0 0 20 20"
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  >
                     <path
                       d="M5 10h10M11 6l4 4-4 4"
                       fill="none"
@@ -590,7 +662,11 @@ function PerryClosingSection() {
               >
                 <span>Install Perry</span>
                 <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#dbe3ec]">
-                  <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5">
+                  <svg
+                    viewBox="0 0 20 20"
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  >
                     <path
                       d="M5 10h10M11 6l4 4-4 4"
                       fill="none"
@@ -652,10 +728,10 @@ function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
               <div className="mb-4 text-[12px] font-medium tracking-[0.16em] text-[#64748b] uppercase">
                 {section.eyebrow}
               </div>
-              <h2 className="max-w-[14ch] text-3xl leading-tight tracking-[-0.04em] text-[#09111f]">
+              <h2 className="max-w-[14ch] text-3xl leading-tight tracking-[-0.055em] text-[#09111f] [word-spacing:0.1em]">
                 {section.title}
               </h2>
-              <p className="mt-5 text-base leading-7 text-[#475569]">
+              <p className="mt-5 text-[15px] leading-7 text-[#475569] [word-spacing:0.07em]">
                 {section.body}
               </p>
 
@@ -716,7 +792,9 @@ export default function HeroScrollShowcase() {
   const terminalStickyRef = useRef<HTMLDivElement | null>(null);
   const terminalMotionRef = useRef<HTMLDivElement | null>(null);
   const storySectionsRef = useRef<HTMLDivElement | null>(null);
-  const releaseEyebrowRef = useRef<HTMLDivElement | null>(null);
+  const sectionTitleRefs = useRef<Record<string, HTMLHeadingElement | null>>(
+    {},
+  );
 
   const motionStateRef = useRef({
     stickyTop: 0,
@@ -730,6 +808,10 @@ export default function HeroScrollShowcase() {
 
   const [desktop, setDesktop] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? "");
+  const [activeStorySectionId, setActiveStorySectionId] = useState(
+    sections[0]?.id ?? "",
+  );
+  const [terminalTitle, setTerminalTitle] = useState("scroll to continue");
 
   useEffect(() => {
     const updateDesktop = () => setDesktop(window.innerWidth >= 1024);
@@ -740,6 +822,56 @@ export default function HeroScrollShowcase() {
 
   useEffect(() => {
     const updateActiveSection = () => {
+      if (desktop) {
+        const terminalTop =
+          terminalMotionRef.current?.getBoundingClientRect().top ??
+          window.innerHeight * 0.18;
+
+        const enteredSection = sections
+          .filter((section) => {
+            const element = document.getElementById(section.id);
+            if (!element) return false;
+
+            const rect = element.getBoundingClientRect();
+            return rect.top <= window.innerHeight - 24 && rect.bottom >= 24;
+          })
+          .at(-1);
+
+        if (enteredSection) {
+          setActiveStorySectionId((current) =>
+            current === enteredSection.id ? current : enteredSection.id,
+          );
+        }
+
+        const crossedSection = sections
+          .filter((section) => {
+            const title = sectionTitleRefs.current[section.id];
+            return title
+              ? title.getBoundingClientRect().top <= terminalTop + 12
+              : false;
+          })
+          .at(-1);
+
+        const nextSection = crossedSection ?? sections[0];
+
+        if (nextSection) {
+          setActiveSectionId((current) =>
+            current === nextSection.id ? current : nextSection.id,
+          );
+
+          const nextTitle =
+            window.scrollY <= 8
+              ? "scroll to continue"
+              : nextSection.terminalTitle;
+
+          setTerminalTitle((current) =>
+            current === nextTitle ? current : nextTitle,
+          );
+        }
+
+        return;
+      }
+
       const sampleY = window.innerHeight * 0.45;
 
       const closestSection = sections
@@ -762,6 +894,9 @@ export default function HeroScrollShowcase() {
 
       if (closestSection) {
         setActiveSectionId((current) =>
+          current === closestSection.id ? current : closestSection.id,
+        );
+        setActiveStorySectionId((current) =>
           current === closestSection.id ? current : closestSection.id,
         );
       }
@@ -892,8 +1027,21 @@ export default function HeroScrollShowcase() {
   }, [desktop]);
 
   if (!desktop) {
-    return <MobileLayout activeSectionId={activeSectionId} />;
+    return <MobileLayout activeSectionId={activeStorySectionId} />;
   }
+
+  const activeTerminalSection =
+    sections.find((section) => section.id === activeSectionId) ?? sections[0];
+  const terminalDescription =
+    terminalTitle === "scroll to continue"
+      ? [
+          "Scroll to see Perry's core features.",
+          "The terminal title updates as each section reaches the top edge.",
+        ]
+      : [
+          activeTerminalSection?.terminalLead ?? "",
+          activeTerminalSection?.terminalFooter ?? "",
+        ];
 
   return (
     <div className="hidden bg-white lg:block" data-nav-surface="light">
@@ -947,7 +1095,11 @@ export default function HeroScrollShowcase() {
                 className="[will-change:transform]"
                 style={{ transform: "translate3d(0,0,0)" }}
               >
-                <TerminalStack withCommand={false} />
+                <TerminalStack
+                  withCommand={false}
+                  title={terminalTitle}
+                  description={terminalDescription}
+                />
               </div>
             </div>
           </div>
@@ -957,10 +1109,11 @@ export default function HeroScrollShowcase() {
               <StoryCard
                 key={section.id}
                 {...section}
-                isActive={activeSectionId === section.id}
-                eyebrowRef={
-                  index === sections.length - 1 ? releaseEyebrowRef : undefined
-                }
+                isActive={activeStorySectionId === section.id}
+                isLast={index === sections.length - 1}
+                titleRef={(node) => {
+                  sectionTitleRefs.current[section.id] = node;
+                }}
               />
             ))}
           </div>
