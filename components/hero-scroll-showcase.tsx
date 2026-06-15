@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import CommandDisplay from "@/components/ui/command-display";
 import CastPlayer from "@/components/ui/cast-player";
 import HeroLensingShader from "@/components/ui/hero-lensing-shader";
@@ -42,11 +48,10 @@ function TerminalStack({
 }
 
 const navItems = [
-  { href: "#why", label: "Why" },
-  { href: "#tools", label: "Tools" },
-  { href: "#plan", label: "Plan" },
-  { href: "#mcp", label: "MCP" },
-  { href: "#resume", label: "Resume" },
+  { href: "#features", label: "Features" },
+  { href: "#how", label: "How it works" },
+  { href: "#automation", label: "Automation" },
+  { href: "#shell", label: "Shell" },
 ];
 
 const sections = [
@@ -240,6 +245,20 @@ function HeroNavbar() {
     };
   }, []);
 
+  const handleNavClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (!href.startsWith("#")) return;
+
+    const target = document.querySelector<HTMLElement>(href);
+    if (!target) return;
+
+    event.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.pushState(null, "", href);
+  };
+
   return (
     <div className="pointer-events-none fixed inset-x-0 top-[36px] z-40 hidden justify-center lg:flex">
       <nav
@@ -247,18 +266,12 @@ function HeroNavbar() {
         className="pointer-events-auto flex items-center gap-[5px] rounded-[12px] border border-white/25 bg-white/55 p-[7px] text-[12px] text-[#0f172a] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-sm transition-transform"
         style={{ transform: `translateY(${-scrollOffset}px)` }}
       >
-        <a
-          href="#top"
-          className="rounded-[12px] bg-black/[0.035] px-[13px] py-[7px] font-medium tracking-[-0.02em] text-[#0f172a] transition hover:bg-black/[0.06]"
-        >
-          Perry
-        </a>
-
         {navItems.map((item) => (
           <a
             key={item.href}
             href={item.href}
-            className="rounded-[12px] px-[13px] py-[7px] font-medium tracking-[-0.02em] text-[#334155] transition hover:bg-black/[0.04] hover:text-[#0f172a]"
+            onClick={(event) => handleNavClick(event, item.href)}
+            className="rounded-[12px] px-[13px] py-[7px] font-medium tracking-[-0.02em] text-[#334155] transition hover:bg-black/5 hover:text-[#0f172a] active:bg-black/5"
           >
             {item.label}
           </a>
@@ -266,7 +279,8 @@ function HeroNavbar() {
 
         <a
           href="#install"
-          className="ml-1 rounded-[12px] bg-[#0f172a] px-[15px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
+          onClick={(event) => handleNavClick(event, "#install")}
+          className="ml-1 rounded-[10px] bg-[#0f172a] px-[15px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
         >
           Get Perry
         </a>
@@ -340,7 +354,10 @@ function StoryCard({
 
 function HowPerryWorksSection() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-36 pt-20 lg:px-10 lg:pb-56 lg:pt-28">
+    <section
+      id="how"
+      className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-36 pt-20 lg:px-10 lg:pb-56 lg:pt-28"
+    >
       <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20 xl:gap-24">
         <div className="flex justify-center">
           <div className="relative w-full max-w-[28rem] overflow-hidden xl:max-w-[30rem]">
@@ -458,7 +475,8 @@ function PerryAutomationTypedExamples() {
 function PerryAutomationSection() {
   return (
     <section
-      className="px-6 pb-28 pt-4 lg:px-10 lg:pb-44"
+      id="automation"
+      className="scroll-mt-28 px-6 pb-28 pt-4 lg:px-10 lg:pb-44"
       data-nav-surface="hero"
     >
       <div className="relative min-h-[52rem] overflow-hidden rounded-[30px] border border-[#dbe3ec] text-white shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:min-h-[56rem] lg:min-h-0 lg:aspect-[16/9]">
@@ -524,7 +542,7 @@ function PerryAutomationSection() {
               and keep the whole loop in one place.
             </p>
             <a
-              href="#why"
+              href="#features"
               className="mt-6 inline-flex items-center gap-2 text-[14px] text-white/95 underline decoration-white/55 underline-offset-4 transition hover:text-white"
             >
               <span>See why</span>
@@ -555,7 +573,8 @@ function PerryAutomationSection() {
 function PerryClosingSection() {
   return (
     <section
-      className="relative h-[190svh] lg:h-[168svh]"
+      id="shell"
+      className="relative h-[190svh] scroll-mt-28 lg:h-[168svh]"
       aria-label="Perry closing reveal"
     >
       <div
@@ -641,17 +660,17 @@ function PerryClosingSection() {
               <a href="#top" className="transition hover:text-[#09111f]">
                 Home
               </a>
-              <a href="#why" className="transition hover:text-[#09111f]">
-                Why
+              <a href="#features" className="transition hover:text-[#09111f]">
+                Features
               </a>
-              <a href="#models" className="transition hover:text-[#09111f]">
-                Models
+              <a href="#how" className="transition hover:text-[#09111f]">
+                How it works
               </a>
-              <a href="#mcp" className="transition hover:text-[#09111f]">
-                MCP
+              <a href="#automation" className="transition hover:text-[#09111f]">
+                Automation
               </a>
-              <a href="#resume" className="transition hover:text-[#09111f]">
-                Resume
+              <a href="#shell" className="transition hover:text-[#09111f]">
+                Shell
               </a>
             </div>
 
@@ -1082,7 +1101,8 @@ export default function HeroScrollShowcase() {
       </div>
 
       <section
-        className="mx-auto max-w-7xl px-6 pb-32 pt-24 lg:px-10"
+        id="features"
+        className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-32 pt-24 lg:px-10"
         data-nav-surface="light"
       >
         <div className="grid grid-cols-[42rem_minmax(0,1fr)] gap-16">
