@@ -15,6 +15,7 @@ import PixelRevealImage from "@/components/ui/pixel-reveal-image";
 import Text3DFlip from "@/components/ui/text-3d-flip";
 
 const DEFAULT_CAST_SOURCE = "/what_is_perry.cast";
+const SCROLL_TITLE = "SCROLL TO CONTINUE";
 const INITIAL_TERMINAL_PEEK = 46;
 const TERMINAL_MIN_TOP = 48;
 const TERMINAL_CENTER_DROP = 48;
@@ -321,7 +322,7 @@ function StoryCard({
     <section
       id={id}
       className={[
-        "flex min-h-[78vh] scroll-mt-28",
+        "flex min-h-[86vh] scroll-mt-28",
         isLast ? "items-end" : "items-center",
       ].join(" ")}
     >
@@ -720,7 +721,7 @@ function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
 
           <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
             <h1 className="text-[42px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
-              The Terminal Agent <br /> Built for Simplicity
+              Meet Perry, the customizable <br/> harness for your agent.
             </h1>
             <p className="mt-4 max-w-[34rem] text-sm leading-6 text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.18)] sm:text-base">
               Perry is a minimal agent harness. Adapt Perry to your workflows,
@@ -839,9 +840,9 @@ export default function HeroScrollShowcase() {
   const [activeStorySectionId, setActiveStorySectionId] = useState(
     sections[0]?.id ?? "",
   );
-  const [terminalTitle, setTerminalTitle] = useState("scroll to continue");
+  const [terminalTitle, setTerminalTitle] = useState(SCROLL_TITLE);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const updateDesktop = () => setDesktop(window.innerWidth >= 1024);
     updateDesktop();
     window.addEventListener("resize", updateDesktop);
@@ -866,8 +867,8 @@ export default function HeroScrollShowcase() {
 
         if (fullyEnteredSection) {
           const nextTitle =
-            window.scrollY <= 8 && fullyEnteredSection.id === sections[0]?.id
-              ? "scroll to continue"
+            window.scrollY <= 0 && fullyEnteredSection.id === sections[0]?.id
+              ? SCROLL_TITLE
               : fullyEnteredSection.terminalTitle;
 
           setActiveStorySectionId((current) =>
@@ -878,6 +879,14 @@ export default function HeroScrollShowcase() {
           setTerminalTitle((current) =>
             current === nextTitle ? current : nextTitle,
           );
+        } else {
+          setTerminalTitle((current) => {
+            if (window.scrollY <= 0) return SCROLL_TITLE;
+
+            return current === SCROLL_TITLE
+              ? (sections[0]?.terminalTitle ?? current)
+              : current;
+          });
         }
 
         return;
@@ -1054,7 +1063,7 @@ export default function HeroScrollShowcase() {
     sections.find((section) => section.id === activeStorySectionId) ??
     sections[0];
   const terminalDescription =
-    terminalTitle === "scroll to continue"
+    terminalTitle === SCROLL_TITLE
       ? [
           "Scroll to see Perry's core features.",
           "The terminal title updates as each section reaches the top edge.",
@@ -1065,17 +1074,7 @@ export default function HeroScrollShowcase() {
         ];
   const terminalCastSrc =
     sectionCastSources[activeStorySectionId] ?? DEFAULT_CAST_SOURCE;
-  const activeStoryIndex = sections.findIndex(
-    (section) => section.id === activeStorySectionId,
-  );
-  const mountedCastSources = Array.from(
-    new Set(
-      [0, 1]
-        .map((offset) => sections[activeStoryIndex + offset])
-        .filter((section): section is (typeof sections)[number] => Boolean(section))
-        .map((section) => sectionCastSources[section.id] ?? DEFAULT_CAST_SOURCE),
-    ),
-  );
+  const mountedCastSources = [terminalCastSrc];
 
   return (
     <div className="hidden bg-white lg:block" data-nav-surface="light">
@@ -1088,9 +1087,9 @@ export default function HeroScrollShowcase() {
           <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.88)_100%)]" />
           <HeroNavbar />
 
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
-            <h1 className="text-[42px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
-              The Terminal Agent <br /> Built for Simplicity
+          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-38 text-center">
+            <h1 className="text-[42px] tracking-tighter text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
+              Meet Perry, the customizable <br/> harness for your agent.
             </h1>
             <p className="mt-4 max-w-[36rem] text-base leading-7 text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.18)]">
               Perry is a minimal agent harness. Adapt Perry to your workflows,
@@ -1121,8 +1120,8 @@ export default function HeroScrollShowcase() {
         className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-32 pt-24 lg:px-10"
         data-nav-surface="light"
       >
-        <div className="grid grid-cols-[42rem_minmax(0,1fr)] gap-16">
-          <div ref={terminalRailRef} className="relative min-w-0">
+        <div className="grid grid-cols-[42rem_minmax(0,1fr)] gap-10">
+          <div ref={terminalRailRef} className="relative min-w-0 min-[1400px]:-ml-10">
             <div ref={terminalSpacerRef} aria-hidden className="h-0" />
 
             <div ref={terminalStickyRef} className="sticky">

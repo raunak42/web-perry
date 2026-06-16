@@ -15,6 +15,9 @@ function cn(...classes: Array<string | undefined | false | null>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const MAX_DEVICE_PIXEL_RATIO = 1.5;
+const NEAR_VIEWPORT_ROOT_MARGIN = "1200px 0px";
+
 function createShader(
   gl: WebGLRenderingContext,
   type: number,
@@ -74,18 +77,51 @@ export default function HeroLensingShader({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isImageReady, setIsImageReady] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      const frame = window.requestAnimationFrame(() => setShouldRender(true));
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nextShouldRender = entry?.isIntersecting ?? false;
+        setShouldRender(nextShouldRender);
+        if (!nextShouldRender) {
+          setIsImageReady(false);
+        }
+      },
+      { rootMargin: NEAR_VIEWPORT_ROOT_MARGIN },
+    );
+
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    setIsImageReady(false);
+    if (!shouldRender) {
+      canvas.width = 1;
+      canvas.height = 1;
+      return;
+    }
 
     const gl = canvas.getContext("webgl", {
-      antialias: true,
+      antialias: false,
       alpha: true,
       premultipliedAlpha: true,
+      depth: false,
+      stencil: false,
+      powerPreference: "low-power",
     });
 
     if (!gl) return;
@@ -202,7 +238,6 @@ export default function HeroLensingShader({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     const image = new window.Image();
-    image.src = src;
     image.decoding = "async";
 
     const pointer = {
@@ -223,9 +258,18 @@ export default function HeroLensingShader({
 
     const resize = () => {
       const rect = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.round(rect.width * dpr));
-      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const dpr = Math.min(
+        window.devicePixelRatio || 1,
+        MAX_DEVICE_PIXEL_RATIO,
+      );
+      const desiredWidth = Math.max(1, rect.width * dpr);
+      const desiredHeight = Math.max(1, rect.height * dpr);
+      const desiredPixels = desiredWidth * desiredHeight;
+      const maxPixels = Math.max(1, imageWidth * imageHeight);
+      const pixelScale = Math.min(1, Math.sqrt(maxPixels / desiredPixels));
+
+      canvas.width = Math.max(1, Math.round(desiredWidth * pixelScale));
+      canvas.height = Math.max(1, Math.round(desiredHeight * pixelScale));
       gl.viewport(0, 0, canvas.width, canvas.height);
     };
 
@@ -317,6 +361,8 @@ export default function HeroLensingShader({
       setIsImageReady(true);
     };
 
+    image.src = src;
+
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseleave", handleLeave);
     resize();
@@ -331,8 +377,10 @@ export default function HeroLensingShader({
       gl.deleteTexture(texture);
       gl.deleteBuffer(positionBuffer);
       gl.deleteProgram(program);
+      canvas.width = 1;
+      canvas.height = 1;
     };
-  }, [imageHeight, imageWidth, lensScale, src]);
+  }, [imageHeight, imageWidth, lensScale, shouldRender, src]);
 
   return (
     <div
@@ -341,7 +389,10 @@ export default function HeroLensingShader({
       style={{
         aspectRatio: `${imageWidth} / ${imageHeight}`,
         backgroundColor: "#f7fbff",
-        backgroundImage: placeholderSrc ? undefined : `url(${src})`,
+        backgroundImage:
+          !placeholderSrc && shouldRender && !isImageReady
+            ? `url(${src})`
+            : undefined,
         backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
