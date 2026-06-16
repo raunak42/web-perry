@@ -76,6 +76,7 @@ export default function HeroLensingShader({
 }: HeroLensingShaderProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [hasLoadedImage, setHasLoadedImage] = useState(false);
   const [isImageReady, setIsImageReady] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -103,6 +104,25 @@ export default function HeroLensingShader({
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
+    let isCancelled = false;
+    const image = new window.Image();
+
+    image.decoding = "async";
+    image.onload = () => {
+      if (!isCancelled) {
+        setHasLoadedImage(true);
+      }
+    };
+    image.src = src;
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [shouldRender, src]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -254,7 +274,7 @@ export default function HeroLensingShader({
     let frame = 0;
     let isReady = false;
     let isDisposed = false;
-    let animationFrame = 0;
+    let animationFrame: number | null = null;
 
     const resize = () => {
       const rect = container.getBoundingClientRect();
@@ -274,6 +294,10 @@ export default function HeroLensingShader({
     };
 
     const draw = () => {
+      animationFrame = null;
+
+      if (isDisposed || document.visibilityState !== "visible") return;
+
       if (pointer.inside) {
         const idleAge = performance.now() - pointer.lastMoveAt;
         const fadeDelay = 120;
@@ -319,6 +343,22 @@ export default function HeroLensingShader({
       }
 
       frame += 1;
+
+      const pointerIsSettled =
+        Math.abs(pointer.targetX - pointer.x) < 0.001 &&
+        Math.abs(pointer.targetY - pointer.y) < 0.001 &&
+        Math.abs(pointer.targetIntensity - pointer.intensity) < 0.001;
+
+      const shouldContinueFade =
+        pointer.inside && performance.now() - pointer.lastMoveAt < 1100;
+
+      if (isReady && (!pointerIsSettled || shouldContinueFade)) {
+        requestDraw();
+      }
+    };
+
+    const requestDraw = () => {
+      if (animationFrame !== null || isDisposed) return;
       animationFrame = window.requestAnimationFrame(draw);
     };
 
@@ -335,13 +375,25 @@ export default function HeroLensingShader({
         pointer.targetY = y;
         pointer.lastMoveAt = performance.now();
       }
+
+      requestDraw();
     };
 
     const handleLeave = () => {
       pointer.inside = false;
+      requestDraw();
     };
 
-    const resizeObserver = new ResizeObserver(resize);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        requestDraw();
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      requestDraw();
+    });
     resizeObserver.observe(container);
 
     image.onload = () => {
@@ -358,22 +410,28 @@ export default function HeroLensingShader({
       );
       resize();
       isReady = true;
+      setHasLoadedImage(true);
       setIsImageReady(true);
+      requestDraw();
     };
 
     image.src = src;
 
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseleave", handleLeave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     resize();
-    animationFrame = window.requestAnimationFrame(draw);
+    requestDraw();
 
     return () => {
       isDisposed = true;
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseleave", handleLeave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       resizeObserver.disconnect();
-      window.cancelAnimationFrame(animationFrame);
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
       gl.deleteTexture(texture);
       gl.deleteBuffer(positionBuffer);
       gl.deleteProgram(program);
@@ -389,10 +447,11 @@ export default function HeroLensingShader({
       style={{
         aspectRatio: `${imageWidth} / ${imageHeight}`,
         backgroundColor: "#f7fbff",
-        backgroundImage:
-          !placeholderSrc && shouldRender && !isImageReady
+        backgroundImage: placeholderSrc
+          ? hasLoadedImage
             ? `url(${src})`
-            : undefined,
+            : undefined
+          : `url(${src})`,
         backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
@@ -404,14 +463,14 @@ export default function HeroLensingShader({
           className="absolute inset-0 scale-[1.04] bg-cover bg-top bg-no-repeat blur-2xl transition-opacity duration-500"
           style={{
             backgroundImage: `url(${placeholderSrc})`,
-            opacity: isImageReady ? 0 : 1,
+            opacity: hasLoadedImage ? 0 : 1,
           }}
         />
       ) : null}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full transition-opacity duration-500"
-        style={{ opacity: isImageReady || !placeholderSrc ? 1 : 0 }}
+        style={{ opacity: isImageReady ? 1 : 0 }}
       />
     </div>
   );
