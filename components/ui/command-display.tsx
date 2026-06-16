@@ -74,7 +74,13 @@ function CheckIcon() {
   );
 }
 
-export default function CommandDisplay({ command }: { command: string }) {
+export default function CommandDisplay({
+  command,
+  topSpacing = "normal",
+}: {
+  command: string;
+  topSpacing?: "normal" | "compact";
+}) {
   const [copied, setCopied] = useState(false);
 
   const tabs = useMemo(() => deriveTabs(command), [command]);
@@ -93,8 +99,12 @@ export default function CommandDisplay({ command }: { command: string }) {
     }
   };
 
+  const spacingClass = topSpacing === "compact" ? "mt-7" : "mt-[72px]";
+
   return (
-    <div className="mx-auto mt-[72px] w-full max-w-[34rem] overflow-hidden rounded-none border border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(246,250,255,0.72)_100%)] text-left text-[#0f172a] shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-xl">
+    <div
+      className={`${spacingClass} mx-auto w-full max-w-[34rem] overflow-hidden rounded-none border border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(246,250,255,0.72)_100%)] text-left text-[#0f172a] shadow-[0_12px_30px_rgba(15,23,42,0.10)] backdrop-blur-xl`}
+    >
       <div className="flex flex-nowrap overflow-x-auto border-b border-white/55 bg-white/26">
         {tabs.map((tab, index) => {
           const isActive = tab.id === selectedTab.id;
@@ -108,7 +118,7 @@ export default function CommandDisplay({ command }: { command: string }) {
                 setCopied(false);
               }}
               className={[
-                "min-w-0 flex-1 whitespace-nowrap px-3 py-2 text-left text-[11px] uppercase transition",
+                "min-w-0 flex-1 whitespace-nowrap px-2 py-2 text-left text-[10px] uppercase transition sm:px-3 sm:text-[11px]",
                 "font-medium tracking-[0.18em]",
                 index !== tabs.length - 1 ? "border-r border-white/55" : "",
                 isActive
@@ -122,13 +132,13 @@ export default function CommandDisplay({ command }: { command: string }) {
         })}
       </div>
 
-      <div className="flex items-center gap-3 bg-white/14 px-4 py-3 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-2 bg-white/14 px-3 py-3 sm:gap-3 sm:px-4 sm:py-3">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/58 font-mono text-[15px] leading-none text-[#8ba0c1]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/58 font-mono text-sm leading-none text-[#8ba0c1] sm:h-8 sm:w-8 sm:text-[15px]">
               $
             </span>
-            <code className="block min-w-0 overflow-x-auto whitespace-nowrap font-mono text-[16px] leading-[1.35] text-[#0f172a] sm:text-[18px]">
+            <code className="block min-w-0 overflow-x-auto whitespace-nowrap font-mono text-[14px] leading-[1.35] text-[#0f172a] sm:text-[18px]">
               {selectedTab.command}
             </code>
           </div>
@@ -138,7 +148,7 @@ export default function CommandDisplay({ command }: { command: string }) {
           type="button"
           onClick={handleCopy}
           aria-label={copied ? "Copied" : "Copy command"}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/64 text-[#7aa8d4] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-white hover:text-[#5d94ca]"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/64 text-[#7aa8d4] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-white hover:text-[#5d94ca] sm:h-9 sm:w-9"
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
         </button>

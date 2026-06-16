@@ -10,6 +10,7 @@ type CastPlayerProps = {
   description?: string[];
   preloadSources?: string[];
   sourceStartTimes?: Record<string, number>;
+  play?: boolean;
 };
 
 type AsciinemaPlayerInstance = {
@@ -22,6 +23,9 @@ type AsciinemaPlayerInstance = {
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
+
+const PLAYER_IDLE_PAUSE_MS = 600_000;
+const PLAYER_INTERSECTION_ROOT_MARGIN = "700px 0px";
 
 type CastTextResult = {
   text: string;
@@ -105,40 +109,52 @@ function playerOptions(startAt: number) {
 function CastLayer({
   source,
   active,
+  playing,
   startAt,
   onMeasure,
 }: {
   source: string;
   active: boolean;
+  playing: boolean;
   startAt: number;
   onMeasure: () => void;
 }) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<AsciinemaPlayerInstance | null>(null);
-  const activeRef = useRef(active);
+  const playingRef = useRef(playing);
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    activeRef.current = active;
+    playingRef.current = playing;
 
     const player = playerRef.current;
     if (!player) return;
 
-    if (active) {
-      void player
-        .seek(startAt)
-        .then(() => player.play())
-        .catch((error) => {
-          console.warn(`Failed to start cast: ${source}`, error);
-        });
+    if (playing) {
+      const startPlayback = hasStartedRef.current
+        ? player.play()
+        : player.seek(startAt).then(() => {
+            hasStartedRef.current = true;
+            return player.play();
+          });
+
+      void startPlayback.catch((error) => {
+        console.warn(`Failed to start cast: ${source}`, error);
+      });
     } else {
       void player
         .pause()
-        .then(() => player.seek(startAt))
+        .then(() => {
+          if (active) return undefined;
+
+          hasStartedRef.current = false;
+          return player.seek(startAt);
+        })
         .catch((error) => {
           console.warn(`Failed to pause cast: ${source}`, error);
         });
     }
-  }, [active, source, startAt]);
+  }, [active, playing, source, startAt]);
 
   useEffect(() => {
     const layer = layerRef.current;
@@ -169,20 +185,20 @@ function CastLayer({
 
       window.requestAnimationFrame(onMeasure);
 
-      if (activeRef.current) {
+      if (playingRef.current) {
         void player
           .seek(startAt)
-          .then(() => player?.play())
+          .then(() => {
+            hasStartedRef.current = true;
+            return player?.play();
+          })
           .catch((error) => {
             console.warn(`Failed to start cast: ${source}`, error);
           });
       } else {
-        void player
-          .pause()
-          .then(() => player?.seek(startAt))
-          .catch((error) => {
-            console.warn(`Failed to pause cast: ${source}`, error);
-          });
+        void player.pause().catch((error) => {
+          console.warn(`Failed to pause cast: ${source}`, error);
+        });
       }
     };
 
@@ -214,10 +230,15 @@ export default function CastPlayer({
   description,
   preloadSources,
   sourceStartTimes,
+  play = true,
 }: CastPlayerProps) {
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousSrcRef = useRef(src);
   const [swapPulse, setSwapPulse] = useState(0);
+  const [isNearViewport, setIsNearViewport] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [isIdle, setIsIdle] = useState(false);
   const sources = useMemo(() => {
     return Array.from(new Set([...(preloadSources ?? []), src]));
   }, [preloadSources, src]);
@@ -233,6 +254,90 @@ export default function CastPlayer({
   }, []);
 
   useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      const frame = window.requestAnimationFrame(() => setIsNearViewport(true));
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsNearViewport(entry?.isIntersecting ?? false);
+      },
+      { rootMargin: PLAYER_INTERSECTION_ROOT_MARGIN },
+    );
+
+    observer.observe(shell);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!play) return;
+
+    let idleTimeout: number | null = null;
+    let visibilityFrame: number | null = null;
+
+    const clearIdleTimeout = () => {
+      if (idleTimeout !== null) {
+        window.clearTimeout(idleTimeout);
+        idleTimeout = null;
+      }
+    };
+
+    const scheduleIdlePause = () => {
+      clearIdleTimeout();
+      idleTimeout = window.setTimeout(() => setIsIdle(true), PLAYER_IDLE_PAUSE_MS);
+    };
+
+    const markActive = () => {
+      setIsIdle(false);
+      scheduleIdlePause();
+    };
+
+    const updateVisibility = () => {
+      const nextIsVisible = document.visibilityState === "visible";
+      setIsPageVisible(nextIsVisible);
+
+      if (nextIsVisible) {
+        markActive();
+      } else {
+        clearIdleTimeout();
+        setIsIdle(true);
+      }
+    };
+
+    const activityEvents = [
+      "pointermove",
+      "pointerdown",
+      "keydown",
+      "wheel",
+      "scroll",
+      "touchstart",
+    ] as const;
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, markActive, { passive: true });
+    });
+    document.addEventListener("visibilitychange", updateVisibility);
+    scheduleIdlePause();
+    visibilityFrame = window.requestAnimationFrame(updateVisibility);
+
+    return () => {
+      clearIdleTimeout();
+      if (visibilityFrame !== null) {
+        window.cancelAnimationFrame(visibilityFrame);
+      }
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, markActive);
+      });
+      document.removeEventListener("visibilitychange", updateVisibility);
+    };
+  }, [play]);
+
+  useEffect(() => {
     if (previousSrcRef.current !== src) {
       previousSrcRef.current = src;
       setSwapPulse((current) => current + 1);
@@ -246,8 +351,10 @@ export default function CastPlayer({
     return () => window.cancelAnimationFrame(frame);
   }, [lockContainerHeight, src]);
 
+  const effectivePlay = play && isNearViewport && isPageVisible && !isIdle;
+
   return (
-    <div className={cn("cast-player-shell", className)}>
+    <div ref={shellRef} className={cn("cast-player-shell", className)}>
       <div className="cast-player-chrome" aria-hidden="true">
         <div className="cast-player-dots">
           <span className="cast-player-dot bg-rose-300" />
@@ -262,6 +369,7 @@ export default function CastPlayer({
             key={source}
             source={source}
             active={source === src}
+            playing={effectivePlay && source === src}
             startAt={sourceStartTimes?.[source] ?? 0}
             onMeasure={lockContainerHeight}
           />

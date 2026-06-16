@@ -82,6 +82,12 @@ const featureCastStartTimes: Record<string, number> = {
   "/perry_resume.cast": 1.3,
 };
 
+const MOBILE_CAST_ROOT_MARGIN = "900px 0px";
+
+function getSectionCastSource(sectionId: string) {
+  return sectionCastSources[sectionId] ?? DEFAULT_CAST_SOURCE;
+}
+
 const sections = [
   {
     id: "intro",
@@ -231,6 +237,74 @@ const sections = [
     terminalFooter: "Stop now. Continue later.",
   },
 ];
+
+type StorySection = (typeof sections)[number];
+
+function MobileSectionCast({ section }: { section: StorySection }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [shouldMount, setShouldMount] = useState(false);
+  const [shouldPlay, setShouldPlay] = useState(false);
+  const source = getSectionCastSource(section.id);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      const frame = window.requestAnimationFrame(() => {
+        setShouldMount(true);
+        setShouldPlay(true);
+      });
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isNearViewport = entry?.isIntersecting ?? false;
+
+        setShouldMount(isNearViewport);
+        setShouldPlay(isNearViewport);
+      },
+      {
+        rootMargin: MOBILE_CAST_ROOT_MARGIN,
+        threshold: 0,
+      },
+    );
+
+    observer.observe(wrapper);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapperRef} className="mt-6 sm:mt-7">
+      {shouldMount ? (
+        <CastPlayer
+          src={source}
+          title={section.terminalTitle}
+          description={[section.terminalLead, section.terminalFooter]}
+          sourceStartTimes={featureCastStartTimes}
+          play={shouldPlay}
+        />
+      ) : (
+        <div className="cast-player-shell min-h-[15rem] sm:min-h-[20rem]" aria-hidden="true">
+          <div className="cast-player-chrome">
+            <div className="cast-player-dots">
+              <span className="cast-player-dot bg-rose-300" />
+              <span className="cast-player-dot bg-amber-300" />
+              <span className="cast-player-dot bg-emerald-300" />
+            </div>
+            <div className="cast-player-title">{section.terminalTitle}</div>
+          </div>
+          <div className="flex min-h-[12rem] items-center justify-center bg-[#f7fbff] px-4 text-center font-mono text-[11px] tracking-[0.14em] text-[#8ca0b8] uppercase sm:min-h-[17rem]">
+            Loading terminal cast
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function HeroNavbar() {
   const navRef = useRef<HTMLElement | null>(null);
@@ -487,7 +561,11 @@ function PerryAutomationSection() {
       data-nav-surface="hero"
     >
       <div className="relative min-h-[52rem] overflow-hidden rounded-[30px] border border-[#dbe3ec] text-white shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:min-h-[56rem] lg:min-h-0 lg:aspect-[16/9]">
-        <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 overflow-hidden bg-cover bg-center"
+          style={{ backgroundImage: "url(/perry-meadow-terminal.webp)" }}
+        >
+          {/*
           <HeroLensingShader
             src="/perry-meadow-terminal.webp"
             imageWidth={1672}
@@ -495,12 +573,13 @@ function PerryAutomationSection() {
             lensScale={1.5}
             className="h-full w-full"
           />
+          */}
         </div>
 
         <div className="relative z-10 flex h-full flex-col px-5 pb-8 pt-8 sm:px-8 sm:pb-10 sm:pt-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
           <div className="relative mt-10 grid flex-1 lg:grid-cols-[minmax(0,36rem)_1fr]">
             <div className="max-w-[36rem]  pt-6">
-              <h2 className="mt-7 w-[28ch] leading-[1.32] tracking-[-0.03em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] text-[2.35rem]">
+              <h2 className="mt-7 max-w-[12ch] text-[clamp(2rem,10vw,2.35rem)] leading-[1.22] tracking-[-0.03em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:max-w-[18ch] lg:w-[28ch] lg:max-w-none lg:text-[2.35rem] lg:leading-[1.32]">
                 Perry helps you automate terminal work with natural language
               </h2>
               <p className="mt-4 max-w-[36rem] text-sm leading-7 text-white [text-shadow:0_1px_10px_rgba(15,23,42,0.14)] sm:text-[15px] lg:text-base">
@@ -588,7 +667,11 @@ function PerryClosingSection() {
         className="sticky top-0 h-[100svh] overflow-hidden"
         data-nav-surface="hero"
       >
-        <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 overflow-hidden bg-cover bg-center"
+          style={{ backgroundImage: "url(/perry-outro-window.webp)" }}
+        >
+          {/*
           <HeroLensingShader
             src="/perry-outro-window.webp"
             imageWidth={1672}
@@ -596,6 +679,7 @@ function PerryClosingSection() {
             lensScale={1.5}
             className="h-full w-full"
           />
+          */}
         </div>
       </div>
 
@@ -712,67 +796,74 @@ function PerryClosingSection() {
   );
 }
 
-function MobileLayout({ activeSectionId }: { activeSectionId: string }) {
+function MobileLayout() {
   return (
     <div className="bg-white lg:hidden">
-      <div className="p-[18px]">
-        <section className="relative flex w-full items-start justify-center overflow-hidden rounded-[24px]">
-          <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_40%,rgba(255,255,255,0.82)_100%)]" />
+      <div className="p-3 sm:p-[18px]">
+        <section
+          id="top"
+          className="relative min-h-[39rem] w-full overflow-hidden rounded-[24px] sm:min-h-[43rem]"
+        >
+          <div className="absolute inset-0">
+            <HeroLensingShader
+              src="/her-new.webp"
+              placeholderSrc="/her-new-blur.webp"
+              imageWidth={1672}
+              imageHeight={941}
+              className="h-full w-full"
+            />
+          </div>
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.05)_38%,rgba(255,255,255,0.88)_100%)]" />
 
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 pt-24 text-center">
-            <h1 className="text-[42px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)]">
-              Meet Perry, the customizable <br/> harness for your agent.
+          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-4 pt-16 text-center sm:px-6 sm:pt-24">
+            <h1 className="mx-auto max-w-[13ch] text-[clamp(2.25rem,11vw,42px)] leading-[1.16] tracking-[-0.055em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:max-w-[18ch]">
+              Meet Perry, the customizable harness for your agent.
             </h1>
             <p className="mt-4 max-w-[34rem] text-sm leading-6 text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.18)] sm:text-base">
               Perry is a minimal agent harness. Adapt Perry to your workflows,
               not the other way around.
             </p>
 
-            <div className="mt-6 flex justify-center">
-              <TerminalStack />
+            <div id="install" className="w-full max-w-[34rem]">
+              <CommandDisplay
+                command="npm install -g @perry-ai/cli"
+                topSpacing="compact"
+              />
             </div>
           </div>
-
-          <HeroLensingShader
-            src="/her-new.webp"
-            placeholderSrc="/her-new-blur.webp"
-            imageWidth={1672}
-            imageHeight={941}
-            className="w-[150%]"
-          />
         </section>
       </div>
 
-      <div className="mx-auto max-w-2xl space-y-16 px-6 pb-24 pt-20 text-left">
+      <div className="mx-auto max-w-3xl space-y-20 px-4 pb-24 pt-16 text-left sm:space-y-24 sm:px-6 sm:pt-20">
         {sections.map((section) => (
-          <section key={section.id} id={section.id} className="scroll-mt-28">
-            <div
-              className={[
-                "transition-opacity duration-300",
-                activeSectionId === section.id ? "opacity-100" : "opacity-35",
-              ].join(" ")}
-            >
-              <div className="mb-4 text-[12px] font-medium tracking-[0.16em] text-[#64748b] uppercase">
-                {section.eyebrow}
-              </div>
-              <h2 className="max-w-[14ch] text-3xl leading-tight tracking-[-0.055em] text-[#09111f] [word-spacing:0.1em]">
-                {section.title}
-              </h2>
-              <p className="mt-5 text-[15px] leading-7 text-[#475569] [word-spacing:0.07em]">
-                {section.body}
-              </p>
-
-              {section.points?.length ? (
-                <ul className="mt-6 space-y-3 text-sm leading-6 text-[#334155]">
-                  {section.points.map((point) => (
-                    <li key={point} className="flex items-start gap-3">
-                      <span className="mt-[9px] h-1.5 w-1.5 rounded-full bg-[#0f172a]" />
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+          <section
+            key={section.id}
+            id={section.id}
+            className="scroll-mt-20 border-t border-[#e7edf4] pt-12 first:border-t-0 first:pt-0"
+          >
+            <div className="mb-4 text-[12px] font-medium tracking-[0.16em] text-[#64748b] uppercase">
+              {section.eyebrow}
             </div>
+            <h2 className="max-w-[16ch] text-[clamp(2rem,8.5vw,2.6rem)] leading-[1.12] tracking-[-0.055em] text-[#09111f] [word-spacing:0.1em]">
+              {section.title}
+            </h2>
+
+            <MobileSectionCast section={section} />
+
+            <p className="mt-6 text-[15px] leading-7 text-[#475569] [word-spacing:0.07em] sm:text-base sm:leading-8">
+              {section.body}
+            </p>
+
+            {section.points?.length ? (
+              <ul className="mt-6 space-y-3 text-sm leading-6 text-[#334155] sm:text-[15px]">
+                {section.points.map((point) => (
+                  <li key={point} className="flex items-start gap-3">
+                    <span className="mt-[9px] h-1.5 w-1.5 rounded-full bg-[#0f172a]" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </section>
         ))}
       </div>
@@ -1056,7 +1147,7 @@ export default function HeroScrollShowcase() {
   }, [desktop]);
 
   if (!desktop) {
-    return <MobileLayout activeSectionId={activeStorySectionId} />;
+    return <MobileLayout />;
   }
 
   const activeTerminalSection =
