@@ -306,6 +306,54 @@ function MobileSectionCast({ section }: { section: StorySection }) {
   );
 }
 
+function MobileNavbar() {
+  const handleNavClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (!href.startsWith("#")) return;
+
+    const target = document.querySelector<HTMLElement>(href);
+    if (!target) return;
+
+    event.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.pushState(null, "", href);
+  };
+
+  const mobileNavItems = [
+    { href: "#features", label: "Features" },
+    { href: "#how", label: "How" },
+    { href: "#automation", label: "Auto" },
+    { href: "#shell", label: "Shell" },
+  ];
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-6 z-50 flex justify-center px-3 sm:top-[36px] lg:hidden">
+      <nav className="pointer-events-auto flex max-w-full items-center gap-[4px] overflow-x-auto rounded-[12px] border border-white/30 bg-white/62 p-[6px] text-[11px] text-[#0f172a] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-md">
+        {mobileNavItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            onClick={(event) => handleNavClick(event, item.href)}
+            className="shrink-0 rounded-[10px] px-[10px] py-[7px] font-medium tracking-[-0.02em] text-[#334155] transition hover:bg-black/5 hover:text-[#0f172a] active:bg-black/5"
+          >
+            {item.label}
+          </a>
+        ))}
+
+        <a
+          href="#install"
+          onClick={(event) => handleNavClick(event, "#install")}
+          className="shrink-0 rounded-[9px] bg-[#0f172a] px-[12px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
+        >
+          Get Perry
+        </a>
+      </nav>
+    </div>
+  );
+}
+
 function HeroNavbar() {
   const navRef = useRef<HTMLElement | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -560,7 +608,7 @@ function PerryAutomationSection() {
       className="scroll-mt-28 px-6 pb-28 pt-4 lg:px-10 lg:pb-44"
       data-nav-surface="hero"
     >
-      <div className="relative min-h-[52rem] overflow-hidden rounded-[30px] border border-[#dbe3ec] text-white shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:min-h-[56rem] lg:min-h-0 lg:aspect-[16/9]">
+      <div className="relative min-h-[52rem] overflow-hidden rounded-[16px] border border-[#dbe3ec] text-white shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:min-h-[56rem] lg:min-h-0 lg:aspect-[16/9] lg:rounded-[24px]">
         <div
           className="absolute inset-0 overflow-hidden bg-cover bg-center"
           style={{ backgroundImage: "url(/perry-meadow-terminal.webp)" }}
@@ -579,10 +627,10 @@ function PerryAutomationSection() {
         <div className="relative z-10 flex h-full flex-col px-5 pb-8 pt-8 sm:px-8 sm:pb-10 sm:pt-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
           <div className="relative mt-10 grid flex-1 lg:grid-cols-[minmax(0,36rem)_1fr]">
             <div className="max-w-[36rem]  pt-6">
-              <h2 className="mt-7 max-w-[12ch] text-[clamp(2rem,10vw,2.35rem)] leading-[1.22] tracking-[-0.03em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:max-w-[18ch] lg:w-[28ch] lg:max-w-none lg:text-[2.35rem] lg:leading-[1.32]">
+              <h2 className="mt-7 max-w-[18ch] text-[22px] leading-8 tracking-[-0.05em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:text-[2.65rem] sm:leading-[1.4] lg:w-[28ch] lg:max-w-none lg:text-[42px] lg:leading-normal lg:tracking-tighter">
                 Perry helps you automate terminal work with natural language
               </h2>
-              <p className="mt-4 max-w-[36rem] text-sm leading-7 text-white [text-shadow:0_1px_10px_rgba(15,23,42,0.14)] sm:text-[15px] lg:text-base">
+              <p className="mt-4 max-w-[34rem] text-[12px] leading-6 text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.18)] sm:text-base sm:leading-6 lg:max-w-[36rem] lg:leading-7">
                 Perry can help you with things like{" "}
                 <PerryAutomationTypedExamples />
               </p>
@@ -617,7 +665,7 @@ function PerryAutomationSection() {
           </div>
         </div>
 
-        <div className="absolute right-8 bottom-8 z-20 hidden max-w-[34rem] overflow-hidden rounded-[20px] border border-white/22 bg-white/10 text-white shadow-[0_18px_44px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:block xl:right-10 xl:bottom-10">
+        <div className="absolute bottom-8 left-8 z-20 hidden max-w-[34rem] overflow-hidden rounded-[20px] border border-white/22 bg-white/10 text-white shadow-[0_18px_44px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:block 2xl:right-10 2xl:left-auto 2xl:bottom-10">
           {/* <div className="pointer-events-none absolute inset-y-4 left-[62%] w-20 rounded-full bg-white/14 blur-xl" /> */}
           <div className="relative px-7 py-5">
             <h3 className="max-w-[15ch] text-[2rem] leading-[1.24] tracking-[-0.03em] text-white">
@@ -660,15 +708,15 @@ function PerryClosingSection() {
   return (
     <section
       id="shell"
-      className="relative h-[190svh] scroll-mt-28 lg:h-[168svh]"
+      className="relative h-[calc(100svh+56.3vw)] scroll-mt-28 lg:h-[168svh]"
       aria-label="Perry closing reveal"
     >
       <div
-        className="sticky top-0 h-[100svh] overflow-hidden"
+        className="sticky top-0 h-[100svh] overflow-hidden bg-white"
         data-nav-surface="hero"
       >
         <div
-          className="absolute inset-0 overflow-hidden bg-cover bg-center"
+          className="absolute inset-0 hidden overflow-hidden bg-cover bg-center lg:block"
           style={{ backgroundImage: "url(/perry-outro-window.webp)" }}
         >
           {/*
@@ -681,6 +729,15 @@ function PerryClosingSection() {
           />
           */}
         </div>
+
+        <Image
+          src="/perry-outro-window.webp"
+          alt=""
+          width={1672}
+          height={941}
+          sizes="100vw"
+          className="absolute inset-x-0 bottom-0 block h-auto w-full lg:hidden"
+        />
       </div>
 
       <div
@@ -707,7 +764,7 @@ function PerryClosingSection() {
 
             <Text3DFlip
               as="div"
-              className="mx-auto mt-8 max-w-[30ch] justify-center text-[2.3rem] leading-[1.42] tracking-[-0.02em] text-[#09111f] sm:text-[2.6rem]"
+              className="mx-auto mt-8 max-w-[30ch] justify-center text-[1.5rem] leading-[1.42] tracking-[-0.02em] text-[#09111f] sm:text-[2.6rem]"
               textClassName="bg-white text-[#09111f]"
               flipTextClassName="bg-white text-[#09111f]"
               rotateDirection="top"
@@ -799,10 +856,11 @@ function PerryClosingSection() {
 function MobileLayout() {
   return (
     <div className="bg-white lg:hidden">
+      <MobileNavbar />
       <div className="p-3 sm:p-[18px]">
         <section
           id="top"
-          className="relative min-h-[39rem] w-full overflow-hidden rounded-[24px] sm:min-h-[43rem]"
+          className="relative h-[min(39rem,max(29rem,calc(100svh-18rem)))] w-full overflow-hidden rounded-[16px] sm:h-[min(43rem,max(36rem,calc(100svh-18rem)))]"
         >
           <div className="absolute inset-0">
             <HeroLensingShader
@@ -813,13 +871,13 @@ function MobileLayout() {
               className="h-full w-full"
             />
           </div>
-          <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.05)_38%,rgba(255,255,255,0.88)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04)_0%,rgba(15,23,42,0)_42%,rgba(15,23,42,0)_100%)]" />
 
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-4 pt-16 text-center sm:px-6 sm:pt-24">
-            <h1 className="mx-auto max-w-[13ch] text-[clamp(2.25rem,11vw,42px)] leading-[1.16] tracking-[-0.055em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:max-w-[18ch]">
+          <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-4 pt-28 text-center sm:px-6 sm:pt-24">
+            <h1 className=" text-[22px] leading-8 sm:leading-[1.4] tracking-[-0.05em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.18),0_0_12px_rgba(255,255,255,0.96),0_0_28px_rgba(255,255,255,0.9),0_0_52px_rgba(255,255,255,0.62)] sm:max-w-[18ch] sm:text-[2.65rem]">
               Meet Perry, the customizable harness for your agent.
             </h1>
-            <p className="mt-4 max-w-[34rem] text-sm leading-6 text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.18)] sm:text-base">
+            <p className="mt-4 max-w-[34rem] text-[12px] leading-6 sm:leading-6 text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.18)] sm:text-base">
               Perry is a minimal agent harness. Adapt Perry to your workflows,
               not the other way around.
             </p>
@@ -834,7 +892,10 @@ function MobileLayout() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-20 px-4 pb-24 pt-16 text-left sm:space-y-24 sm:px-6 sm:pt-20">
+      <div
+        id="features"
+        className="mx-auto max-w-3xl scroll-mt-24 space-y-20 px-4 pb-24 pt-10 text-left sm:space-y-24 sm:px-6 sm:pt-12"
+      >
         {sections.map((section) => (
           <section
             key={section.id}
@@ -868,7 +929,7 @@ function MobileLayout() {
         ))}
       </div>
 
-      <section className="px-6 pb-28 pt-10">
+      <section id="how" className="scroll-mt-24 px-6 pb-28 pt-10">
         <div className="mx-auto max-w-2xl">
           <div className="mx-auto max-w-[24rem] overflow-hidden">
             <PixelRevealImage
