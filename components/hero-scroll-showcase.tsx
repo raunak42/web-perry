@@ -20,6 +20,7 @@ const INITIAL_TERMINAL_PEEK = 46;
 const TERMINAL_MIN_TOP = 48;
 const TERMINAL_CENTER_DROP = 48;
 const TERMINAL_RAIL_OVERLAP = 352;
+const TERMINAL_FINAL_LEFT_SHIFT = 48;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -393,7 +394,7 @@ function HeroNavbar() {
     <div className="pointer-events-none fixed inset-x-0 top-[36px] z-40 hidden justify-center lg:flex">
       <nav
         ref={navRef}
-        className="pointer-events-auto flex items-center gap-[5px] rounded-[12px] border border-white/25 bg-white/55 p-[7px] text-[12px] text-[#0f172a] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-sm transition-transform"
+        className="pointer-events-auto flex items-center gap-[5px] rounded-[10px]  bg-white/80 p-[7px] text-[12px] text-[#0f172a] shadow-[0_8px_22px_rgba(15,23,42,0.10)] backdrop-blur-sm transition-transform"
         style={{ transform: `translateY(${-scrollOffset}px)` }}
       >
         {navItems.map((item) => (
@@ -410,7 +411,7 @@ function HeroNavbar() {
         <a
           href="#install"
           onClick={(event) => handleNavClick(event, "#install")}
-          className="ml-1 rounded-[10px] bg-[#0f172a] px-[15px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
+          className="ml-1 rounded-[8px] bg-[#0f172a] px-[15px] py-[7px] font-medium tracking-[-0.02em] text-white transition hover:bg-black"
         >
           Get Perry
         </a>
@@ -978,6 +979,7 @@ export default function HeroScrollShowcase() {
     stickyTop: 0,
     spacerHeight: 0,
     startX: 0,
+    finalX: 0,
     pinScrollY: 1,
     ready: false,
   });
@@ -1099,7 +1101,7 @@ export default function HeroScrollShowcase() {
     if (!terminal || !state.ready) return;
 
     const progress = clamp(window.scrollY / state.pinScrollY, 0, 1);
-    const x = state.startX * (1 - progress);
+    const x = state.finalX + (state.startX - state.finalX) * (1 - progress);
 
     terminal.style.transform = `translate3d(${x}px, 0, 0)`;
   };
@@ -1143,12 +1145,15 @@ export default function HeroScrollShowcase() {
       const railLeft = terminalRect.left;
       const centeredLeft = (window.innerWidth - terminalRect.width) / 2;
       const startX = centeredLeft - railLeft;
+      const finalX =
+        window.innerWidth >= 1400 ? -TERMINAL_FINAL_LEFT_SHIFT : 0;
       const pinScrollY = Math.max(1, startTop - stickyTop);
 
       motionStateRef.current = {
         stickyTop,
         spacerHeight,
         startX,
+        finalX,
         pinScrollY,
         ready: true,
       };
@@ -1268,8 +1273,8 @@ export default function HeroScrollShowcase() {
         className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-32 pt-24 lg:px-10"
         data-nav-surface="light"
       >
-        <div className="grid grid-cols-[42rem_minmax(0,1fr)] gap-10">
-          <div ref={terminalRailRef} className="relative min-w-0 min-[1400px]:-ml-10">
+        <div className="grid grid-cols-[42rem_minmax(0,1fr)] gap-8">
+          <div ref={terminalRailRef} className="relative min-w-0">
             <div ref={terminalSpacerRef} aria-hidden className="h-0" />
 
             <div ref={terminalStickyRef} className="sticky">
