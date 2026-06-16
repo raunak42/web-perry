@@ -613,7 +613,6 @@ function PerryAutomationSection() {
           className="absolute inset-0 overflow-hidden bg-cover bg-center"
           style={{ backgroundImage: "url(/perry-meadow-terminal.webp)" }}
         >
-          {/*
           <HeroLensingShader
             src="/perry-meadow-terminal.webp"
             imageWidth={1672}
@@ -621,7 +620,6 @@ function PerryAutomationSection() {
             lensScale={1.5}
             className="h-full w-full"
           />
-          */}
         </div>
 
         <div className="relative z-10 flex h-full flex-col px-5 pb-8 pt-8 sm:px-8 sm:pb-10 sm:pt-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
@@ -719,7 +717,6 @@ function PerryClosingSection() {
           className="absolute inset-0 hidden overflow-hidden bg-cover bg-center lg:block"
           style={{ backgroundImage: "url(/perry-outro-window.webp)" }}
         >
-          {/*
           <HeroLensingShader
             src="/perry-outro-window.webp"
             imageWidth={1672}
@@ -727,7 +724,6 @@ function PerryClosingSection() {
             lensScale={1.5}
             className="h-full w-full"
           />
-          */}
         </div>
 
         <Image
