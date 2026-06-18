@@ -339,7 +339,6 @@ function MobileNavbar() {
     { href: "#features", label: "Features" },
     { href: "#how", label: "How" },
     { href: "#automation", label: "Auto" },
-    { href: "#shell", label: "Shell" },
   ];
 
   return (
@@ -363,7 +362,7 @@ function MobileNavbar() {
           aria-label="Open Perry on GitHub"
           className="flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] text-[#334155] transition hover:bg-black/5 hover:text-[#0f172a] active:bg-black/5"
         >
-          <GitHubIcon className="size-[16px]" />
+          <GitHubIcon className="size-[18px]" />
         </a>
 
         <a
@@ -438,7 +437,7 @@ function HeroNavbar() {
           aria-label="Open Perry on GitHub"
           className="ml-1 flex size-[32px] cursor-pointer items-center justify-center rounded-[8px] text-[#334155] transition hover:bg-black/5 hover:text-[#0f172a] active:bg-black/5"
         >
-          <GitHubIcon className="size-[17px]" />
+          <GitHubIcon className="size-[19px]" />
         </a>
 
         <a
