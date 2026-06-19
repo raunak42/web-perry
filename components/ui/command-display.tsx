@@ -15,9 +15,8 @@ function deriveTabs(command: string): CommandTab[] {
     return [
       { id: "npm", label: "NPM", command: "npm install -g @perry-ai/cli" },
       { id: "pnpm", label: "PNPM", command: "pnpm add -g @perry-ai/cli" },
-      { id: "yarn", label: "YARN", command: "yarn dlx -p @perry-ai/cli perry" },
-      { id: "bun", label: "BUN", command: "bunx --package @perry-ai/cli perry" },
-      { id: "npx", label: "NPX", command: "npx @perry-ai/cli" },
+      { id: "yarn", label: "YARN", command: "yarn global add @perry-ai/cli" },
+      { id: "bun", label: "BUN", command: "bun add -g @perry-ai/cli" },
     ];
   }
 
@@ -33,7 +32,6 @@ function deriveTabs(command: string): CommandTab[] {
     { id: "pnpm", label: "PNPM", command: `pnpm add ${packageSpec}` },
     { id: "yarn", label: "YARN", command: `yarn add ${packageSpec}` },
     { id: "bun", label: "BUN", command: `bun add ${packageSpec}` },
-    { id: "npx", label: "NPX", command: `npx ${packageSpec}` },
   ];
 }
 
@@ -118,7 +116,7 @@ export default function CommandDisplay({
                 setCopied(false);
               }}
               className={[
-                "min-w-0 flex-1 whitespace-nowrap px-2 py-2 text-left text-[10px] uppercase transition sm:px-3 sm:text-[11px]",
+                "min-w-0 flex-1 cursor-pointer whitespace-nowrap px-2 py-2 text-left text-[10px] uppercase transition sm:px-3 sm:text-[11px]",
                 "font-medium tracking-[0.18em]",
                 index !== tabs.length - 1 ? "border-r border-white/55" : "",
                 isActive
@@ -148,7 +146,7 @@ export default function CommandDisplay({
           type="button"
           onClick={handleCopy}
           aria-label={copied ? "Copied" : "Copy command"}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none border border-white/65 bg-white/64 text-[#7aa8d4] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-white hover:text-[#5d94ca] sm:h-9 sm:w-9"
+          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-none border border-white/65 bg-white/64 text-[#7aa8d4] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-white hover:text-[#5d94ca] sm:h-9 sm:w-9"
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
         </button>
